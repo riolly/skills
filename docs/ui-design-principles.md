@@ -28,6 +28,7 @@ Start with one feature, design it in low fidelity, build it early, and make each
 | Read before composing | Check a component's docs and composition tree before using it, not from memory. | shadcn |
 | Review what gets installed | Read added files, fix imports and icons to match the project, and never overwrite local changes without approval. | shadcn |
 | Start with a feature, not the shell | Design one working feature first, such as a search form. Add a shell block once a few features show what navigation is needed. | book, decided |
+| Short path for a small edit | For an edit to one component, read the system, make the change, then check that component and what sits beside it. | ours |
 
 ## Hierarchy
 
@@ -67,6 +68,8 @@ Spacing shows what belongs together, so leave more space around a group than ins
 | Layout classes only where a component is used | Width, margin and placement belong at the call site. Colour and type do not. | shadcn |
 | Space first, then a border | Separate with spacing before drawing a line. When space is not enough, add a soft border. Inputs always keep a visible boundary. | both, decided |
 | Density follows the page type | Data-heavy app screens are compact. Marketing and reading pages are generous. When unsure, start with too much space and remove it. | both, decided |
+| Design for the worst content | Lay out with the longest name, the longest translated label, an empty list, a very long list and an image of an odd shape. Decide what each one does: wrap, truncate with an ellipsis, or scroll. | ours |
+| A component responds to its container | A component that can sit in a sidebar, panel or dialog uses container queries. Viewport breakpoints are for page-level layout. | ours |
 
 ## Typography
 
@@ -109,6 +112,7 @@ Components use role tokens instead of raw colours, and every surface token has a
 | Three colour groups | Neutrals for most of the interface, one brand colour for primary actions and active states, and accent colours for status and highlights. | book, decided |
 | Decoration is quiet outside marketing pages | On app screens and other non-marketing pages, accent borders, tints and patterns are allowed as long as they are subtle and never pull attention from the content; keep their contrast low. Marketing pages can use decoration much more freely. | book, decided |
 | Decoration earns its place as a cue | Its best use is helping people tell similar items apart quickly, such as a pattern or colour tile on each row of a file list where only the title differs. | ours, decided |
+| Compute contrast from the final colours | Calculate the ratio from the final colour values. Blend a translucent colour with the surface behind it first. A token's name is no evidence that the pair passes. | ours |
 
 ## Depth and surfaces
 
@@ -143,6 +147,7 @@ Components share one composable shape, and their look changes through variants, 
 | Pick the control by the choice | A handful of visible options: toggle group. Few exclusive options: radio group. Long or searchable list: select or combobox. An on/off setting: switch. | shadcn |
 | Semantics still matter | A link styled as a button stays a link element. | shadcn |
 | Existing parts first, then a variant | Compose from components the project already has. When they fall short, add a variant or a new component to the project instead of a one-off override. | both, decided |
+| Check the other uses of a shared part | After changing a shared component or token, look at the other places that use it. | ours |
 
 | Need | Overlay |
 | --- | --- |
@@ -169,7 +174,7 @@ Every image and icon has a size it was made for, so design around that size inst
 
 ## States and accessibility
 
-Design the empty, loading, invalid and focused states with the same care as the filled one.
+Design the empty, no-results, loading, failed, invalid and focused states with the same care as the filled one.
 
 | Rule | In practice | From |
 | --- | --- | --- |
@@ -181,6 +186,11 @@ Design the empty, loading, invalid and focused states with the same care as the 
 | Behaviour comes from a headless library | Keyboard handling, focus trapping and ARIA come from Base UI, Radix or React Aria. Don't rebuild them. | shadcn |
 | Right-to-left ready | Use start and end instead of left and right. Directional icons and slide animations flip. | shadcn |
 | Use the feedback components | Alert for callouts, badge for status, skeleton for loading, instead of hand-styled blocks. | shadcn |
+| No results is its own state | A search or filter that matches nothing says so, keeps the query and filters in view, and offers a way to clear them. It is a separate state from empty. | ours |
+| Refreshing keeps the content | Content already on screen stays there while it reloads, with a small spinner to show the refresh. | ours |
+| Failed requests are designed | A request that fails shows a message saying what went wrong and a retry action. | ours |
+| Target size | Every control has a click area of at least 24px, and 44px on touch screens. A small icon keeps its size inside a larger button. | ours |
+| Look at the states a still page hides | When checking a rendered screen, open each menu and overlay, tab to a control and submit an invalid value, and look at each result. | ours |
 
 ## Conflicts and decisions
 
