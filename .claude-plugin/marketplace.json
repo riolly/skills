@@ -1,0 +1,17 @@
+{
+  "name": "riolly-skills",
+  "description": "Skills for Claude Code and Codex by riolly",
+  "owner": {
+    "name": "Alberto R Cahyantara",
+    "url": "https://github.com/riolly"
+  },
+  "plugins": [
+    {
+      "name": "riolly",
+      "source": ".",
+      "description": "Agent skills from riolly/skills. Includes designing-ui: rules for hierarchy, spacing, colour, type and component composition.",
+      "homepage": "https://github.com/riolly/skills",
+      "repository": "https://github.com/riolly/skills"
+    }
+  ]
+}
