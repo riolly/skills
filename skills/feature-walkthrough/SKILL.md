@@ -1,6 +1,6 @@
 ---
 name: feature-walkthrough
-description: Record narrated, captioned feature walkthroughs, compare app versions across browser tabs, add circles, rectangles and animated pointer gestures, and include terminal output. Use when delivering user-visible web changes or when the user asks for a video demo, before-and-after comparison, or walkthrough.
+description: Record narrated, captioned feature walkthroughs, compare app versions across browser tabs, add circles, rectangles and animated pointer gestures, and include terminal output. Use when the user asks for a video demo, before-and-after comparison, or walkthrough. Also use while planning a user-visible web change, to decide whether a recording is worth offering; most changes need none.
 ---
 
 # Feature walkthrough
@@ -8,6 +8,30 @@ description: Record narrated, captioned feature walkthroughs, compare app versio
 Create a short video of the actual workflow, with a small set of steps the viewer can try. Deliver an MP4 with readable captions and, when useful, spoken narration. Aim for 30–90 seconds per workflow; use shorter clips for simple changes. Explain the result like the engineer who built it: what changed, why it helps, what to click, and what the viewer should see. Sound confident and interested without inventing benefits or overstating what was verified.
 
 For narration, read [spoken walkthroughs](references/narration.md). A local Piper voice can read the same timed text used for captions without an API key. Keep captions useful with sound muted. Prefer a silent video when the user asks for one or narration adds little.
+
+## Decide whether to record
+
+A recording costs minutes, and most changes do not need one. Settle the question while planning the work, before any code is written, so the end of the task never stalls on it.
+
+Record without asking when the user requested a video, demo, or walkthrough, or invoked this skill by name. Otherwise, judge how hard the change is to check by hand:
+
+| Checking the change | What to do |
+| --- | --- |
+| Obvious. A few written steps cover it, such as a new button, a text or style change, or one form field. | Do not record and do not ask. Finish with the written steps and the expected result. |
+| Medium. Several steps or states, or a result that is easier to see than to describe. | Ask once, with the other planning questions. Offer written steps, the recommended choice, or a short recording. |
+| Hard. A long flow, timing or animation, a before-and-after comparison, or several apps or tabs. | Ask once, with the other planning questions. Offer a recording, the recommended choice, or written steps. |
+
+Use the client's question tool when it has one, and name what the recording would show so the choice is concrete. When the task has no planning step, ask before starting the work. When nobody can answer, as in a non-interactive run, skip the recording and note in the final answer that one is available on request.
+
+The answer holds for the whole task. After a decline, do not ask again or record anyway; the user can still request a video later. Stop reading here when the answer is no.
+
+## Keep the answer ahead of the video
+
+The written answer must not wait for the video. Finish and verify the work, then send the complete answer: what changed, the steps to try, and a line saying the recording will follow. Start recording after that.
+
+Run the recording in the background when the client allows it. A background subagent can drive the browser, or `scripts/record_browser.py` and the finishing helpers can run as background commands. Post the video as a short follow-up when it is ready. If the client can only record in the foreground, still send the answer first, then record in the same turn.
+
+A recording that fails or runs long is reported in the follow-up. It does not reopen the finished answer.
 
 ## Locate the installed helpers
 
