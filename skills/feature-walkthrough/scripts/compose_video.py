@@ -11,8 +11,8 @@ import math
 from pathlib import Path
 import tempfile
 
-import imageio_ffmpeg
-from finish_video import caption_band, make_subtitles, probe, publish, run
+from finish_video import (add_encoding_arguments, caption_band, encoding_options, get_ffmpeg,
+                          make_subtitles, probe, publish, run)
 
 
 def main():
@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--layout', choices=['sequence','side-by-side'], default='sequence')
     parser.add_argument('--captions', type=Path, help='Optional captions timed to the combined output')
     parser.add_argument('--force', action='store_true')
+    add_encoding_arguments(parser)
     args = parser.parse_args()
     output = args.output.resolve()
     if output.suffix.lower() != '.mp4': parser.error('output must have an .mp4 extension')
@@ -34,7 +35,8 @@ def main():
             raise ValueError('side-by-side expects exactly two clips')
         durations, inputs, graph = [], [], []
         output.parent.mkdir(parents=True,exist_ok=True)
-        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        ffmpeg = get_ffmpeg()
+        options, encoding = encoding_options(args.encoder, args.gpu)
         with tempfile.TemporaryDirectory(prefix='comparison-',dir=output.parent) as temporary:
             work = Path(temporary)
             for i, clip in enumerate(clips):
@@ -56,22 +58,22 @@ def main():
                 if not isinstance(title,str) or not title.strip(): raise ValueError('each clip needs a nonempty label')
                 if len(title) > 80: raise ValueError('keep clip labels under 80 characters')
                 subtitle = work / f'title-{i}.ass'
-                # Top-centre alignment puts the title in the header band above the app.
-                make_subtitles(subtitle,[{'start':0,'end':duration,'text':title}],1280,852,duration,
-                               alignment=8,margin_v=12)
+                # Each 1920x1080 stage keeps a full-resolution browser capture readable.
+                make_subtitles(subtitle,[{'start':0,'end':duration,'text':title}],1920,1158,duration,
+                               alignment=8,margin_v=12,max_lines=1)
                 # A fixed stage preserves aspect ratios, including terminal clips.
                 graph.append(f'[{i}:v]setpts=PTS-STARTPTS,fps=30,trim=duration={duration},'
-                             'scale=1280:800:force_original_aspect_ratio=decrease:force_divisible_by=2,'
-                             'pad=1280:800:(ow-iw)/2:(oh-ih)/2:color=0x101010,setsar=1,'
-                             f'pad=1280:852:0:52:color=0x142033,ass=filename=title-{i}.ass[v{i}]')
+                             'scale=1920:1080:force_original_aspect_ratio=decrease:force_divisible_by=2,'
+                             'pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0x101010,setsar=1,'
+                             f'pad=1920:1158:0:78:color=0x142033,ass=filename=title-{i}.ass[v{i}]')
             streams = ''.join(f'[v{i}]' for i in range(len(clips)))
             if args.layout == 'sequence':
                 graph.append(f'{streams}concat=n={len(clips)}:v=1:a=0[joined]')
-                duration, width = sum(durations),1280
+                duration, width = sum(durations),1920
             else:
                 graph.append(f'{streams}hstack=inputs=2:shortest=1[joined]')
-                duration, width = min(durations),2560
-            height = 852
+                duration, width = min(durations),3840
+            height = 1158
             if args.captions:
                 cues = json.loads(args.captions.read_text(encoding='utf-8'))
                 if not isinstance(cues,list) or not cues: raise ValueError('captions must be a nonempty array')
@@ -81,11 +83,12 @@ def main():
             else:
                 graph.append('[joined]null[out]')
             run([ffmpeg,'-hide_banner','-loglevel','error','-nostdin','-y',*inputs,
-                 '-filter_complex',';'.join(graph),'-map','[out]','-an','-c:v','libx264',
-                 '-preset','fast','-crf','20','-pix_fmt','yuv420p','-movflags','+faststart','output.mp4'],cwd=work)
+                 '-filter_complex',';'.join(graph),'-map','[out]','-an',*options,
+                 '-movflags','+faststart','output.mp4'],cwd=work)
             publish(work/'output.mp4',output,args.force)
         print(json.dumps({'path':str(output),'layout':args.layout,'duration_seconds':round(duration,2),
-                          'width':width,'height':height,'audio':'silent','decode_verified':True},indent=2))
+                          'width':width,'height':height,'audio':'silent','encoding':encoding,
+                          'portable_mp4_verified':True,'decode_verified':True},indent=2))
     except (ValueError,KeyError,TypeError,RuntimeError,OSError) as error:
         parser.exit(1,f'Composition failed: {error}\n')
 

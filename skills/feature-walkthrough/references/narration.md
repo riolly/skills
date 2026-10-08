@@ -23,19 +23,19 @@ Setup downloads packages and voice files. After they are cached, speech synthesi
 
 ## Export narration and matching captions
 
-First finish trimming and combining the footage. Do not add a caption band in that step; the narration helper adds one. Caption times are relative to the final edited video, not to the raw recording.
+First finish trimming and combining the footage, then add the caption band once with this helper. Caption times are relative to the final edited video, not to the raw recording. Narration is the default; a caption-only export is complete only when silent output was requested or a voice failure is reported.
 
 ```sh
 uv run --python 3.12 "$WALKTHROUGH_SKILL_DIR"/scripts/narrate_video.py \
   /absolute/path/edited.mp4 /absolute/path/narrated.mp4 \
-  --captions /absolute/path/captions.json
+  --captions /absolute/path/captions.json --title "A concise walkthrough title"
 ```
 
 Use the ordinary `start`, `end`, `text` caption JSON. The helper reads each cue verbatim, starts speech 0.12 seconds after its caption appears, and preserves silence between cues. It rejects a sentence that cannot fit its cue, rather than cutting words off or automatically rushing the voice. Shorten the sentence or extend the scene. `--length-scale` permits modest pacing changes, with 1 as normal speed and larger values slower.
 
-Use `--no-captions` only if the input already contains the exact matching captions. It copies the video stream and adds narration without another video encode. By default, source audio is replaced. `--source-audio mix` retains an existing audio track quietly beneath narration and requires the input to have audio. If the original audio itself explains the behavior being tested, preserve a separate original clip and choose mixing deliberately. The composition helper currently creates silent output; add narration after composition.
+For composed footage that already has titles, omit `--title` to preserve those headers. Use `--no-captions` only if the input already contains the exact matching captions. Compatible H.264 video is copied; other formats are converted for MP4 playback. By default, source audio is replaced. `--source-audio mix` retains an existing audio track quietly beneath narration and requires the input to have audio. If the original audio itself explains the behavior being tested, preserve a separate original clip and choose mixing deliberately. Composition creates silent output; add narration after composition.
 
-Existing output requires `--force`. The input is never replaced. Export checks include full decoding, a present and non-silent audio track, and audio duration covering the video. Review key frames and cue timing against the actual footage. Listen to the final narration when an audio playback tool is available; otherwise report that pronunciation and perceived voice quality still need a listening check. Pay attention to names, acronyms, and pauses. Regenerate mispronounced wording consistently in both speech and captions.
+Existing output requires `--force`. Export checks include full decoding, a present and non-silent audio track, and audio duration covering the video. Follow the frame, player, and downloaded-copy checks in [export quality](quality.md). Listen to the final narration when an audio playback tool is available; otherwise report that pronunciation and perceived voice quality still need a listening check. Pay attention to names, acronyms, and pauses. Regenerate mispronounced wording consistently in both speech and captions.
 
 Deliver the MP4 with a brief instruction to enable sound if needed, and identify the synthetic voice. Keep the written explanation short. A viewer should understand and reproduce the demonstrated change by watching the video.
 

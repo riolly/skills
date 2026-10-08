@@ -22,6 +22,11 @@ def validate(scenario):
         raise ValueError("scenario needs a url and steps")
     if not scenario["url"].startswith(("http://", "https://", "file://")):
         raise ValueError("url must use http, https, or file")
+    viewport = scenario.get("viewport", {"width": 1920, "height": 1080})
+    if (not isinstance(viewport, dict) or set(viewport) != {"width", "height"}
+            or not all(isinstance(n, int) and not isinstance(n, bool) and 320 <= n <= 3840
+                       for n in viewport.values())):
+        raise ValueError("viewport needs integer width and height between 320 and 3840")
     steps = scenario.get("steps")
     if not isinstance(steps, list) or not steps: raise ValueError("steps must be a nonempty array")
     actions = {"click", "fill", "press", "mark", "wait", "assert-text", "scroll"}
@@ -40,13 +45,14 @@ def validate(scenario):
 def record(scenario, output, headed=False, storage_state=None):
     validate(scenario)
     report = []
+    viewport = scenario.get("viewport", {"width": 1920, "height": 1080})
     annotate = Path(__file__).with_name("annotate.js").read_text(encoding="utf-8").strip()
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="browser-recording-", dir=output.parent) as temporary:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=not headed)
-            context = browser.new_context(viewport={"width": 1280, "height": 800},
-                                          record_video_size={"width": 1280, "height": 800},
+            context = browser.new_context(viewport=viewport,
+                                          record_video_size=viewport,
                                           record_video_dir=temporary,
                                           storage_state=str(storage_state) if storage_state else None)
             context.set_default_timeout(TIMEOUT)
@@ -92,7 +98,7 @@ def record(scenario, output, headed=False, storage_state=None):
                     context.close()
                     if completed: video.save_as(str(output))
                 finally: browser.close()
-    return {"path": str(output), "url": scenario["url"], "viewport": [1280, 800],
+    return {"path": str(output), "url": scenario["url"], "viewport": [viewport["width"], viewport["height"]],
             "steps": report, "timing": "wall clock estimates; verify against exported frames",
             "audio": "silent; add narration after editing"}
 
