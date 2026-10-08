@@ -56,6 +56,7 @@ Spacing shows what belongs together, so leave more space around a group than ins
 | Rule | In practice | From |
 | --- | --- | --- |
 | Group by spacing | Label to input is tighter than field to field. shadcn's Vega style uses 12px inside a field and 28px between fields. Same rule for headings, list items and icon-plus-count pairs. | both |
+| Keep helper text with its label | In a switch or checkbox row, put the label and description in one text stack beside the control. Use a small existing scale step, such as 4 or 8px when available, and put the larger field-to-field gap outside the stack. Preserve the control's touch target. | ours |
 | Non-linear spacing scale | Steps at least about 25% apart, built on 16px: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 and up. | book |
 | Keep the scale's meaning fixed | Change density through component sizes, never by redefining what a spacing step means. | shadcn |
 | Don't fill the screen | Give content the width it needs. If a narrow form looks lost, split it into columns instead of stretching it. | book |
@@ -63,11 +64,12 @@ Spacing shows what belongs together, so leave more space around a group than ins
 | Don't shrink until needed | Prefer a max-width over grid-column widths, so a card stays at its best size until the screen is narrower. | book |
 | Design small first | Start at about 400px wide, then adjust what felt like a compromise on larger screens. | book |
 | Scale parts independently | Large headlines shrink faster than body text on small screens. Button height, padding and font size are set per size, not by one ratio. | both |
-| Space with gap | Stacks use flex or grid gap, not margins between siblings. | shadcn |
+| Space with gap | Stacks use flex or grid gap, not margins between siblings. Nest the text stack inside the field, with a smaller gap than the field group. Avoid adding paragraph margins to a gap that already spaces the text. | shadcn and ours |
 | One spacing value per component | A card's padding and section gap come from one variable, so edge-to-edge content can cancel it exactly. | shadcn |
 | Layout classes only where a component is used | Width, margin and placement belong at the call site. Colour and type do not. | shadcn |
 | Space first, then a border | Separate with spacing before drawing a line. When space is not enough, add a soft border. Inputs always keep a visible boundary. | both, decided |
-| Density follows the page type | Data-heavy app screens are compact. Marketing and reading pages are generous. When unsure, start with too much space and remove it. | both, decided |
+| Density follows the page type | Data-heavy app screens are compact. Marketing and reading pages are generous. When unsure, use the project's existing component density. Related text stays close at either density. | both, decided |
+| Check the visible helper gap | At narrow and wide sizes, check that helper text stays close to its label or control when it wraps. Inspect margins, padding and row height when the visible gap looks too large. | ours |
 | Design for the worst content | Lay out with the longest name, the longest translated label, an empty list, a very long list and an image of an odd shape. Decide what each one does: wrap, truncate with an ellipsis, or scroll. | ours |
 | A component responds to its container | A component that can sit in a sidebar, panel or dialog uses container queries. Viewport breakpoints are for page-level layout. | ours |
 

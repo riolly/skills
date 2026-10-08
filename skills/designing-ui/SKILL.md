@@ -21,7 +21,7 @@ Three more bodies of reference live in sibling files. Read each when its conditi
 4. **Structure without colour.** Lay the feature out with spacing, size and weight alone, at about 400px wide first and then wider. Done when the rank order is readable in greyscale, every gap is a scale step with more space around each group than inside it, and the layout holds with the worst content the screen can receive.
 5. **Colour, depth and decoration.** Add them through role tokens and component variants. Done when every colour at a use site is a role token or a variant, and every text and surface pair meets the contrast floor by calculation.
 6. **States.** Design the empty, no-results, loading, failed, invalid and focused state of every region that depends on data or input. Done when each such region has every state that applies to it.
-7. **Look and correct.** Render the screen and look at it, narrow and wide, and in dark mode when the project has one. Then open each menu and overlay, tab to a control and submit an invalid value, and look at each result. Walk every rule in the reference sections against what you see and fix what fails. Done when each rule is met, or its exception is reported to the user with the reason. When you cannot render the screen, say so in your report.
+7. **Look and correct.** Render the screen and look at it, narrow and wide, and in dark mode when the project has one. Where a control has helper text, check that it stays close to its label or control when the text wraps. Inspect margins, padding and row height when the visible gap looks too large. Then open each menu and overlay, tab to a control and submit an invalid value, and look at each result. Walk every rule in the reference sections against what you see and fix what fails. Done when each rule is met, or its exception is reported to the user with the reason. When you cannot render the screen, say so in your report.
 
 To review an existing UI, run step 1, then run step 7 across the whole screen, and report findings rule by rule, most visible first.
 
@@ -39,14 +39,15 @@ For a small edit to one component, run step 1, make the change, then run step 7 
 ## Group
 
 - **More space around a group than inside it.** Label to input is tighter than field to field. A heading sits closer to its own section than to the one above. An icon sits closer to its count than to the next pair.
+- **Keep helper text with its label.** In a switch or checkbox row, put the label and description in one text stack beside the control. Choose a small existing spacing step, such as 4 or 8px when the project's scale has them. Put the larger field-to-field gap outside this stack, and preserve the control's touch target.
 - **Separate with space first, then a border.** When space alone is not enough, add a soft border: 1px at about 10% of the text colour. Inputs always keep a visible boundary at 3:1 or better.
 - **Every gap, size, font size and radius is a scale step.** Change density by choosing other steps or component sizes, so each step keeps one meaning across the project.
-- **Density follows the page type.** App screens are compact; marketing and reading pages are generous. When unsure, start with too much space and remove it.
+- **Density follows the page type.** App screens are compact; marketing and reading pages are generous. When unsure, use the project's existing component density. Related text stays close at either density.
 - **Content gets the width it needs.** Forms, cards and paragraphs take a max-width. Sidebars, avatars and icons take fixed widths, and only the main region flexes. A narrow form in a wide layout splits into columns.
 - **Design for the worst content.** Lay out with the longest name, the longest translated label, an empty list, a very long list and an image of an odd shape. Decide what each one does: wrap, truncate with an ellipsis, or scroll.
 - **A component responds to its container.** A component that can sit in a sidebar, panel or dialog uses container queries. Viewport breakpoints are for page-level layout.
 - **Parts scale independently.** Headlines shrink faster than body text on small screens. Button height, padding and font size are set per size.
-- **Stack with gap, and use start and end** in place of left and right, so the layout flips for right-to-left languages.
+- **Stack with gap.** Use separate nested stacks for text within a field and for the fields themselves, with the smaller gap inside. Avoid adding paragraph margins to a gap that already spaces the text. Use start and end in place of left and right, so the layout flips for right-to-left languages.
 
 ## Text
 
@@ -80,6 +81,7 @@ For a small edit to one component, run step 1, make the change, then run step 7 
 - **Existing parts first, then a variant.** Compose from components the project already has. When they fall short, add a variant or a new component to the project.
 - **Change a component's look in this order**: a built-in variant, then a token, then a new variant in its source. Use sites carry layout classes only: width, margin and placement.
 - **Use the full structure.** A card has header, title, description, content and footer. Menu and select items sit inside a group, and tab triggers inside a list.
+- **Forms use field parts.** A field wraps its label, control, description and error; a field group spaces complete fields. Use the project's field components when available.
 - **The component sizes and spaces its icons.** Icons come from the project's icon set.
 - **Compose in place of adding props.** A loading button is a disabled button with a spinner inside it.
 - **Pick the control by the choice.** A handful of visible options: toggle group. A few exclusive options: radio group. A long or searchable list: select or combobox. An on/off setting: switch.
