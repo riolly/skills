@@ -24,11 +24,11 @@ uv run "$WALKTHROUGH_SKILL_DIR"/scripts/compose_video.py \
   /absolute/path/clips.json /absolute/path/comparison.mp4 --layout side-by-side
 ```
 
-Use `--layout sequence` for one clip after another, including more than two clips or different web apps. Optional `--captions captions.json` uses the same start/end/text schema as `finish_video.py`, timed relative to the combined output. Clips receive permanent source labels above the app. Composition produces silent MP4, even when an input has audio; preserve source clips if narration matters. Existing output requires `--force`.
+Use `--layout sequence` for one clip after another, including more than two clips or different web apps. Optional `--captions captions.json` uses the same start/end/text schema as `finish_video.py`, timed relative to the combined output. Caption text and its band scale with the output width, so a side-by-side comparison stays readable when a player shrinks it. Clips receive permanent source labels above the app. Composition produces silent MP4, even when an input has audio; preserve source clips if narration matters. Existing output requires `--force`.
 
 ## Circles, rectangles and pointer gestures
 
-Read `scripts/annotate.js` and evaluate its **trimmed text** in the selected tab with `preview_evaluate`, or the current browser integration's equivalent. T3 rejects leading/trailing whitespace. The portable recorder installs it automatically for a `mark` step. This installs `window.__walkthrough`, a temporary SVG overlay inside a shadow root. It does not click, type, send pointer events, or change the app's saved state. The overlay does not accept mouse events. Use observed CSS selectors with exactly one visible match.
+Read `scripts/annotate.js` and evaluate its **trimmed text** in the selected tab with `preview_evaluate`, or the current browser integration's equivalent. T3 rejects leading/trailing whitespace. The portable recorder installs it automatically for a `mark` step. This installs `window.__walkthrough`, a temporary SVG overlay inside a shadow root. It does not click, type, send pointer events, or change the app's saved state. The overlay does not accept mouse events. Each mark places it in the browser's top layer, so it draws above an open modal dialog, popover, or fullscreen element. It is built without inline markup or style elements, so it also works on pages with Trusted Types or a strict style policy. Use observed CSS selectors with exactly one visible match, and scroll the target into the viewport before marking it.
 
 ```js
 window.__walkthrough.mark({
@@ -43,6 +43,7 @@ window.__walkthrough.mark({
 - `shape` accepts `rectangle`, `circle`, or `none`. The circle fits the target bounds as an ellipse. Shapes draw themselves over the first half second.
 - `gesture` accepts `wiggle`, `circle`, or `none`. Wiggle draws a moving pointer at the target; circle orbits the pointer around it. These are visual annotations, not actual OS cursor movement.
 - `label` uses plain text. Optional `color` accepts a CSS color and `padding` adds 0–64 pixels around the target.
+- `target` accepts an element in place of `selector`, for one that CSS cannot reach from the document, such as an element inside a shadow root.
 - `duration` accepts 100–15000 milliseconds, then clears the mark. Only one active mark is shown. `status()` reports the current mark.
 
 Marks follow the target's rendered position during scroll or resize. Reinspect and remark when a route change replaces the target. Full navigation requires installing the helper again. Background tabs can pause animation frames, so gesture clips should be checked in the exported video. Slow orbit gestures and a persistent shape survive low capture frame rates better than a fast wiggle.
@@ -67,7 +68,7 @@ uv run "$WALKTHROUGH_SKILL_DIR"/scripts/record_terminal.py \
   /absolute/path/steps.json /absolute/path/terminal.mp4
 ```
 
-The helper prints the exact command, executes it, holds its result briefly, and stops on the first command failure. It records locally with asciinema's `--headless --return`, renders with `agg`, and exports through the MP4 helper. Keep the `.cast` recording for replay with `asciinema play`. It also keeps an intermediate GIF. Nothing is uploaded. Run from the intended working directory. Only execute commands already within the user's task authorization; do not substitute success messages for failed output or silently rerun costly actions just for a video.
+The helper prints the exact command, executes it, holds its result briefly, and stops on the first command failure. A command that cannot start, such as one missing from `PATH`, is recorded as a failed step with status 127. It records locally with asciinema's `--headless --return`, renders with `agg`, and exports through the MP4 helper. It prints one JSON report and exits with the failing command's status. Keep the `.cast` recording for replay with `asciinema play`. It also keeps an intermediate GIF. The cast, GIF, and MP4 appear together; a failed export leaves none of them. Nothing is uploaded. Run from the intended working directory. Only execute commands already within the user's task authorization; do not substitute success messages for failed output or silently rerun costly actions just for a video.
 
 Optional `--captions` adds captions timed to the final rendered clip. Idle time is preserved up to 30 seconds, and the last frame holds for two seconds. `--force` replaces existing output files. Avoid credentials in recorded commands or output. Combine the terminal MP4 with browser clips using the same composition manifest.
 

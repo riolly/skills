@@ -32,8 +32,12 @@ def stamp(value):
     return f"{hours}:{minutes:02}:{whole:02}.{fraction:02}"
 
 
-def make_subtitles(path, captions, width, height, duration, font_size=None):
-    font_size = font_size or max(18, round(width * 26 / 1280))
+def caption_band(width):
+    return max(112, round(width * 112 / 1280 / 2) * 2)
+
+
+def make_subtitles(path, captions, width, height, duration, alignment=2, margin_v=24):
+    font_size = max(18, round(width * 26 / 1280))
     lines = [
         "[Script Info]", "ScriptType: v4.00+", f"PlayResX: {width}",
         f"PlayResY: {height}", "WrapStyle: 0", "", "[V4+ Styles]",
@@ -42,7 +46,7 @@ def make_subtitles(path, captions, width, height, duration, font_size=None):
         "ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, "
         "MarginL, MarginR, MarginV, Encoding",
         f"Style: Default,DejaVu Sans,{font_size},&H00FFFFFF,&H00FFFFFF,"
-        "&H00101010,&H00101010,0,0,0,0,100,100,0,0,1,1,0,2,32,32,24,1",
+        f"&H00101010,&H00101010,0,0,0,0,100,100,0,0,1,1,0,{alignment},32,32,{margin_v},1",
         "", "[Events]",
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
     ]
@@ -78,6 +82,67 @@ def run(command, **kwargs):
     return result
 
 
+def probe(path):
+    reader = imageio_ffmpeg.read_frames(str(path))
+    try:
+        metadata = next(reader)
+    finally:
+        reader.close()
+    duration = metadata["duration"]
+    if not duration > 0:
+        # A recording written to a pipe has no duration header; decode it to find its end.
+        # Copying packets instead would stop short by the B-frame reorder delay.
+        duration = imageio_ffmpeg.count_frames_and_secs(str(path))[1]
+        if not duration > 0:
+            raise ValueError(f"could not measure the duration of {path}")
+    return duration, metadata["size"]
+
+
+def publish(result, destination, force):
+    run([imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-xerror", "-nostdin",
+         "-i", str(result), "-f", "null", "-"])
+    if result.stat().st_size == 0:
+        raise ValueError("FFmpeg produced an empty video")
+    if destination.exists() and not force:
+        raise ValueError("output appeared while processing; refusing to replace it")
+    os.replace(result, destination)
+
+
+def finish(source, destination, captions=None, start=0, duration=None, force=False):
+    available, (original_width, original_height) = probe(source)
+    available -= start
+    if available <= 0:
+        raise ValueError("start must be before the end of the video")
+    duration = min(available, duration) if duration is not None else available
+    ratio = min(1, 1280 / original_width)
+    width = max(2, round(original_width * ratio / 2) * 2)
+    height = max(2, round(original_height * ratio / 2) * 2)
+    filters = [f"scale={width}:{height}", "setsar=1"]
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    # Safe fixed names in an isolated directory avoid filter-path escaping.
+    with tempfile.TemporaryDirectory(prefix="walkthrough-", dir=destination.parent) as temporary:
+        work = Path(temporary)
+        if captions:
+            cues = json.loads(captions.read_text(encoding="utf-8"))
+            if not isinstance(cues, list) or not cues:
+                raise ValueError("captions must be a nonempty JSON array")
+            height += caption_band(width)
+            make_subtitles(work / "captions.ass", cues, width, height, duration)
+            filters += [f"pad={width}:{height}:0:0:color=0x101010", "ass=filename=captions.ass"]
+        run([
+            imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+            "-ss", str(start), "-i", str(source), "-t", str(duration),
+            "-map", "0:v:0", "-map", "0:a?", "-vf", ",".join(filters),
+            "-c:v", "libx264", "-preset", "fast", "-crf", "20",
+            "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
+            "-movflags", "+faststart", "output.mp4",
+        ], cwd=work)
+        publish(work / "output.mp4", destination, force)
+    return {"path": str(destination), "duration_seconds": round(duration, 2),
+            "width": width, "height": height, "size_bytes": destination.stat().st_size,
+            "captions": bool(captions), "decode_verified": True}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
@@ -100,51 +165,8 @@ def main():
         parser.error("duration must be positive")
 
     try:
-        reader = imageio_ffmpeg.read_frames(str(source))
-        try:
-            metadata = next(reader)
-        finally:
-            reader.close()
-        available = metadata["duration"] - args.start
-        if available <= 0:
-            parser.error("start must be before the end of the video")
-        duration = min(available, args.duration) if args.duration is not None else available
-        original_width, original_height = metadata["size"]
-        ratio = min(1, 1280 / original_width)
-        width = max(2, round(original_width * ratio / 2) * 2)
-        height = max(2, round(original_height * ratio / 2) * 2)
-        filters = [f"scale={width}:{height}", "setsar=1"]
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-        # Safe fixed names in an isolated directory avoid filter-path escaping.
-        with tempfile.TemporaryDirectory(prefix="walkthrough-", dir=destination.parent) as temporary:
-            work = Path(temporary)
-            if args.captions:
-                captions = json.loads(args.captions.read_text(encoding="utf-8"))
-                if not isinstance(captions, list) or not captions:
-                    raise ValueError("captions must be a nonempty JSON array")
-                height += max(112, round(width * 112 / 1280 / 2) * 2)
-                make_subtitles(work / "captions.ass", captions, width, height, duration)
-                filters += [f"pad={width}:{height}:0:0:color=0x101010", "ass=filename=captions.ass"]
-            run([
-                ffmpeg, "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
-                "-ss", str(args.start), "-i", str(source), "-t", str(duration),
-                "-map", "0:v:0", "-map", "0:a?", "-vf", ",".join(filters),
-                "-c:v", "libx264", "-preset", "fast", "-crf", "20",
-                "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
-                "-movflags", "+faststart", "output.mp4",
-            ], cwd=work)
-            output = work / "output.mp4"
-            run([ffmpeg, "-hide_banner", "-loglevel", "error", "-xerror", "-nostdin",
-                 "-i", str(output), "-f", "null", "-"])
-            if output.stat().st_size == 0:
-                raise ValueError("FFmpeg produced an empty video")
-            if destination.exists() and not args.force:
-                raise ValueError("output appeared while processing; refusing to replace it")
-            os.replace(output, destination)
-        print(json.dumps({"path": str(destination), "duration_seconds": round(duration, 2),
-                          "width": width, "height": height, "size_bytes": destination.stat().st_size,
-                          "captions": bool(args.captions), "decode_verified": True}, indent=2))
+        report = finish(source, destination, args.captions, args.start, args.duration, args.force)
+        print(json.dumps(report, indent=2))
     except (KeyError, TypeError, ValueError, RuntimeError, OSError) as error:
         parser.exit(1, f"Video export failed: {error}\n")
 

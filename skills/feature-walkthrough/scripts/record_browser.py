@@ -14,6 +14,8 @@ import time
 
 from playwright.sync_api import sync_playwright, expect, Error as PlaywrightError
 
+TIMEOUT = 15000  # milliseconds, for actions and assertions alike
+
 
 def validate(scenario):
     if not isinstance(scenario, dict) or not isinstance(scenario.get("url"), str):
@@ -38,7 +40,7 @@ def validate(scenario):
 def record(scenario, output, headed=False, storage_state=None):
     validate(scenario)
     report = []
-    annotate = Path(__file__).with_name("annotate.js").read_text().strip()
+    annotate = Path(__file__).with_name("annotate.js").read_text(encoding="utf-8").strip()
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="browser-recording-", dir=output.parent) as temporary:
         with sync_playwright() as playwright:
@@ -47,7 +49,9 @@ def record(scenario, output, headed=False, storage_state=None):
                                           record_video_size={"width": 1280, "height": 800},
                                           record_video_dir=temporary,
                                           storage_state=str(storage_state) if storage_state else None)
-            context.set_default_timeout(15000)
+            context.set_default_timeout(TIMEOUT)
+            # Assertions have their own, shorter default, and they gate every step.
+            expect.set_options(timeout=TIMEOUT)
             page = context.new_page()
             video = page.video
             started = time.monotonic()
@@ -76,7 +80,9 @@ def record(scenario, output, headed=False, storage_state=None):
                         page.evaluate(annotate)
                         options = {key: step[key] for key in ("selector", "shape", "gesture", "label", "color", "padding") if key in step}
                         options["duration"] = min(15000, max(100, round(hold * 1000)))
-                        page.evaluate("options => window.__walkthrough.mark(options)", options)
+                        # Mark the element Playwright resolved, which may be below the fold or in a shadow root.
+                        locator.scroll_into_view_if_needed()
+                        locator.evaluate("(target, options) => window.__walkthrough.mark({...options, target})", options)
                     page.wait_for_timeout(float(step.get("hold", 3 if action == "mark" else 1)) * 1000)
                 page.evaluate("() => window.__walkthrough?.destroy()")
                 completed = True

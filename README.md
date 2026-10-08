@@ -99,4 +99,4 @@ After the pinned browser setup in the portable recording guide:
 uv run --python 3.12 tests/test_feature_walkthrough.py
 ```
 
-The integration checks record real actions against a temporary test page, verify that annotations appear in the video, decode the MP4 export, and reject failed workflows or accidental overwrites.
+The integration checks record real actions against a temporary test page, verify that annotations appear in the video, decode the MP4 export, and reject failed workflows or accidental overwrites. They also cover marks over modal dialogs and under a strict content security policy, recordings without a duration header, and side-by-side composition. The terminal checks are skipped unless asciinema and agg are installed. Narration is not covered, since it needs the voice download.

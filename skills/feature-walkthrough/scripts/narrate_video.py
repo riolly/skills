@@ -8,7 +8,6 @@
 import argparse
 import json
 import math
-import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -17,7 +16,7 @@ import wave
 import imageio_ffmpeg
 import numpy as np
 from piper import PiperVoice, SynthesisConfig
-from finish_video import make_subtitles, run
+from finish_video import caption_band, make_subtitles, probe, publish, run
 
 
 def read_wave(path):
@@ -51,11 +50,8 @@ def main():
         parser.error("length-scale must be between 0.85 and 1.3; give longer speech more time")
 
     try:
-        reader = imageio_ffmpeg.read_frames(str(source))
-        try: metadata = next(reader)
-        finally: reader.close()
-        duration = metadata["duration"]
-        width, height = metadata["size"]
+        duration, (width, height) = probe(source)
+        band = caption_band(width)
         cues = json.loads(args.captions.read_text(encoding="utf-8"))
         if not isinstance(cues, list) or not cues: raise ValueError("captions must be a nonempty array")
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -63,7 +59,7 @@ def main():
         with tempfile.TemporaryDirectory(prefix="narration-", dir=output.parent) as temporary:
             work = Path(temporary)
             # Validate the complete timeline before doing speech synthesis.
-            make_subtitles(work / "captions.ass", cues, width, height + 112, duration, font_size=26)
+            make_subtitles(work / "captions.ass", cues, width, height + band, duration)
             voice = PiperVoice.load(str(model))
             rate = voice.config.sample_rate
             timeline = np.zeros(math.ceil(duration * rate), dtype=np.float32)
@@ -110,14 +106,12 @@ def main():
             if args.no_captions:
                 command += ["-c:v", "copy"]
             else:
-                command += ["-vf", f"pad={width}:{height+112}:0:0:color=0x101010,ass=filename=captions.ass",
+                command += ["-vf", f"pad={width}:{height+band}:0:0:color=0x101010,ass=filename=captions.ass",
                             "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-pix_fmt", "yuv420p"]
             command += ["-c:a", "aac", "-b:a", "128k", "-t", str(duration),
                         "-movflags", "+faststart", "output.mp4"]
             run(command, cwd=work)
             result = work / "output.mp4"
-            run([ffmpeg, "-hide_banner", "-loglevel", "error", "-xerror", "-nostdin",
-                 "-i", str(result), "-f", "null", "-"])
             # Require an audible output track, beyond a successful video decode.
             decoded = subprocess.run([ffmpeg, "-v", "error", "-nostdin", "-i", str(result),
                                       "-map", "0:a:0", "-f", "f32le", "-ac", "1", "-ar", str(rate), "-"],
@@ -127,8 +121,7 @@ def main():
                 raise ValueError("exported audio is silent")
             if abs(len(samples) / rate - duration) > 0.15:
                 raise ValueError("exported audio does not cover the video timeline")
-            if output.exists() and not args.force: raise ValueError("output appeared while processing")
-            os.replace(result, output)
+            publish(result, output, args.force)
         print(json.dumps({"path": str(output), "duration_seconds": duration, "voice": model.name,
                           "speech": "local synthetic narration", "audio": "AAC", "source_audio": args.source_audio,
                           "captions_added": not args.no_captions, "cues": report, "decode_verified": True,

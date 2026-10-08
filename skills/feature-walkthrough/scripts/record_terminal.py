@@ -8,18 +8,20 @@
 import argparse
 import json
 import math
+import os
 from pathlib import Path
 import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
-from finish_video import main as finish_video
+from finish_video import finish
 
 
 def load_steps(path):
-    steps = json.loads(path.read_text())
+    steps = json.loads(path.read_text(encoding='utf-8'))
     if not isinstance(steps,list) or not steps: raise ValueError('steps must be a nonempty array')
     for step in steps:
         command = step['command']
@@ -35,11 +37,15 @@ def execute_steps(path):
     print('\033[2J\033[H',end='',flush=True)
     for step in steps:
         print('\033[1;36m$ ' + shlex.join(step['command']) + '\033[0m',flush=True)
-        result = subprocess.run(step['command'])
-        if result.returncode:
-            print(f'\033[1;31mCommand exited with status {result.returncode}\033[0m',flush=True)
+        try: status = subprocess.run(step['command']).returncode
+        except OSError as error:
+            # A command that cannot start is a failed step, as a shell reports it, not a helper traceback.
+            print(f"{step['command'][0]}: {error.strerror}",flush=True)
+            status = 126 if isinstance(error,PermissionError) else 127
+        if status:
+            print(f'\033[1;31mCommand exited with status {status}\033[0m',flush=True)
         time.sleep(float(step.get('pause',2.5)))
-        if result.returncode: return result.returncode
+        if status: return status
         print('',flush=True)
     return 0
 
@@ -60,22 +66,25 @@ def main():
         if not shutil.which(tool): parser.error(f'{tool} is not installed')
     try:
         load_steps(args.steps)
+        # Reject an unreadable captions file before the commands run, since a failed export discards their recording.
+        if args.captions: json.loads(args.captions.read_text(encoding='utf-8'))
         output.parent.mkdir(parents=True,exist_ok=True)
         command = shlex.join([sys.executable,str(Path(__file__).resolve()),'--execute-steps',str(args.steps.resolve())])
-        record = ['asciinema','rec','--headless','--return','--quiet','--window-size','100x24','--command',command]
-        if args.force: record.append('--overwrite')
-        result = subprocess.run([*record,str(cast)])
-        if not cast.is_file(): raise ValueError('recorder did not create a cast file')
-        subprocess.run(['agg','--quiet','--font-size','22','--theme','github-dark','--no-loop',
-                        '--idle-time-limit','30','--last-frame-duration','2',str(cast),str(gif)],check=True)
-        # Reuse the checked MP4 converter. Neither recorder uploads anything.
-        sys.argv = [str(Path(__file__).with_name('finish_video.py')),str(gif),str(output)]
-        if args.captions: sys.argv += ['--captions',str(args.captions.resolve())]
-        if args.force: sys.argv.append('--force')
-        finish_video()
-        print(json.dumps({'terminal_cast':str(cast),'command_exit_code':result.returncode}))
+        # Publish the cast, GIF, and MP4 together. A failed export leaves nothing to block the next run.
+        with tempfile.TemporaryDirectory(prefix='terminal-',dir=output.parent) as temporary:
+            raw_cast, raw_gif = Path(temporary)/'recording.cast',Path(temporary)/'recording.gif'
+            result = subprocess.run(['asciinema','rec','--headless','--return','--quiet','--window-size','100x24',
+                                     '--command',command,str(raw_cast)])
+            if not raw_cast.is_file(): raise ValueError('recorder did not create a cast file')
+            subprocess.run(['agg','--quiet','--font-size','22','--theme','github-dark','--no-loop',
+                            '--idle-time-limit','30','--last-frame-duration','2',str(raw_cast),str(raw_gif)],check=True)
+            # Reuse the checked MP4 converter. Neither recorder uploads anything.
+            report = finish(raw_gif,output,args.captions,force=args.force)
+            os.replace(raw_cast,cast)
+            os.replace(raw_gif,gif)
+        print(json.dumps({**report,'terminal_cast':str(cast),'command_exit_code':result.returncode},indent=2))
         return result.returncode
-    except (OSError,ValueError,KeyError,TypeError,subprocess.CalledProcessError) as error:
+    except (OSError,ValueError,KeyError,TypeError,RuntimeError,subprocess.CalledProcessError) as error:
         parser.exit(1,f'Terminal recording failed: {error}\n')
 
 
