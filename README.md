@@ -89,6 +89,8 @@ Claude Code loads the skill on its own when a task involves UI. To call it direc
 
 For a feature report, ask for a short narrated walkthrough or invoke `/feature-walkthrough` in Claude Code, `/riolly:feature-walkthrough` through the plugin, or `$feature-walkthrough` in Codex. It explains what changed, demonstrates the actual result, and gives you steps to try.
 
+Existing recording preferences, including `AGENTS.md` instructions, take precedence. Otherwise, the skill gives written steps for changes that are obvious to check and asks once about a recording for harder ones. In Codex, the written result arrives as a progress update before recording, and the final response includes the verified video or a recording limitation. A recording subagent is preferred when available and allowed; T3 uses its shared preview recorder with or without subagents. Delivery after the turn ends requires a client that explicitly supports automatic resumption.
+
 The skill files install through `npx`; recording dependencies are separate. T3 Code uses its shared preview recorder. Other environments can use the bundled Playwright recorder. Install `uv`, then follow [portable recording](skills/feature-walkthrough/references/portable.md) for browser setup and [narration](skills/feature-walkthrough/references/narration.md) for the optional local voice. Terminal clips additionally need asciinema and agg. No paid speech API is required. Terminal clients receive a local MP4 path; T3 can embed the video.
 
 ## Verify the walkthrough helpers
