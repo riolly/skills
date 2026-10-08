@@ -9,7 +9,7 @@
     {
       "name": "riolly",
       "source": ".",
-      "description": "Agent skills from riolly/skills. Includes designing-ui: rules for hierarchy, spacing, colour, type and component composition.",
+      "description": "Agent skills from riolly/skills. Includes designing-ui for UI design and feature-walkthrough for narrated, annotated video demos.",
       "homepage": "https://github.com/riolly/skills",
       "repository": "https://github.com/riolly/skills"
     }

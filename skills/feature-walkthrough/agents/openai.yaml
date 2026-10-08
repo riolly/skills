@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature walkthrough"
+  short_description: "Explain app changes with narrated video walkthroughs"
+  default_prompt: "Use $feature-walkthrough to demonstrate these changes with a short narrated video, matching captions, and steps I can try."
