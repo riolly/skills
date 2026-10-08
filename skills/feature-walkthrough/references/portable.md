@@ -42,7 +42,7 @@ uv run "$WALKTHROUGH_SKILL_DIR"/scripts/finish_video.py \
   /absolute/path/artifacts/walkthrough/edited.mp4
 ```
 
-The recorder creates a fresh 1280×800 browser context, executes the real actions, and closes it to finalize the WebM. It does not clear saved data in the user's browser. It rejects ambiguous controls, HTTP errors, and failed assertions, and does not export a failed workflow as success. Existing output requires `--force`. Review the exported frames, trim initial loading or idle time with `finish_video.py`, and then add captions or narration. Reported action times are wall clock estimates, not authoritative video timestamps.
+The recorder creates a fresh 1920×1080 browser context with the same video dimensions, executes the real actions, and closes it to finalize the WebM. Set `"viewport":{"width":1600,"height":900}` in the scenario for different framing; capture size always matches it. It preserves saved data in the user's browser. It rejects ambiguous controls, HTTP errors, and failed assertions, and does not export a failed workflow as success. Existing output requires `--force`. Review the exported frames, trim initial loading or idle time with `finish_video.py`, and then add narration and captions. Reported action times are wall clock estimates, not authoritative video timestamps. Follow [export quality](quality.md) before delivery.
 
 For login, pass `--storage-state /absolute/path/auth.json` only with an authorized existing Playwright storage-state file. Treat it as credentials and keep it out of recordings, source control, and installation archives. The recorder does not open the user's regular browser profile.
 

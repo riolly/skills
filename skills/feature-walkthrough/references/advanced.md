@@ -8,7 +8,7 @@ For an actual change comparison, record a known baseline before editing, use an 
 
 Use matching viewport sizes, sample data, routes, and actions. Different ports isolate local storage. Avoid clearing a user's stored data to align the comparison. Record each tab with its own start/stop calls. If recording several tabs, stop every started recorder even after an action fails. Preserve every returned recording path.
 
-Use `scripts/compose_video.py` to make labelled chapters or a side-by-side comparison. Sequential chapters are easier to read on a phone. Side-by-side preserves each app at 1280 pixels wide, so the output is 2560 pixels wide. It supports exactly two clips and ends with the shorter trimmed clip; align the key action or result with each clip's `start`. Matching playback time does not prove the original actions happened simultaneously.
+Use `scripts/compose_video.py` to make labelled chapters or a side-by-side comparison. Sequential chapters are easier to read on a phone. Each app has a 1920×1080 stage and a separate title header; side-by-side output is 3840 pixels wide. It supports exactly two clips and ends with the shorter trimmed clip; align the key action or result with each clip's `start`. Matching playback time does not prove the original actions happened simultaneously.
 
 Write a JSON manifest. Paths may be absolute or relative to the manifest file:
 
@@ -24,7 +24,7 @@ uv run "$WALKTHROUGH_SKILL_DIR"/scripts/compose_video.py \
   /absolute/path/clips.json /absolute/path/comparison.mp4 --layout side-by-side
 ```
 
-Use `--layout sequence` for one clip after another, including more than two clips or different web apps. Optional `--captions captions.json` uses the same start/end/text schema as `finish_video.py`, timed relative to the combined output. Caption text and its band scale with the output width, so a side-by-side comparison stays readable when a player shrinks it. Clips receive permanent source labels above the app. Composition produces silent MP4, even when an input has audio; preserve source clips if narration matters. Existing output requires `--force`.
+Use `--layout sequence` for one clip after another, including more than two clips or different web apps. Add narration and matching captions after composition, preserving its existing title headers. For silent output, optional `--captions captions.json` uses the same start/end/text schema as `finish_video.py`, timed relative to the combined output. Caption text and its compact band scale with output width. Composition produces silent MP4, even when an input has audio; preserve source clips if narration matters. Existing output requires `--force`. Follow [export quality](quality.md) for GPU selection and final playback checks.
 
 ## Circles, rectangles and pointer gestures
 

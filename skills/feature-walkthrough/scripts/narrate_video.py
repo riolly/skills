@@ -13,10 +13,10 @@ import subprocess
 import tempfile
 import wave
 
-import imageio_ffmpeg
 import numpy as np
 from piper import PiperVoice, SynthesisConfig
-from finish_video import caption_band, make_subtitles, probe, publish, run
+from finish_video import (add_encoding_arguments, encoding_options, get_ffmpeg, make_subtitles,
+                          portable_video, probe, publish, run, video_filters)
 
 
 def read_wave(path):
@@ -35,6 +35,8 @@ def main():
     parser.add_argument("--model", type=Path, default=Path.home() / ".local/share/feature-walkthrough/voices/en_US-ljspeech-high.onnx")
     parser.add_argument("--length-scale", type=float, default=1, help="1 is natural speed; larger is slower")
     parser.add_argument("--no-captions", action="store_true", help="input already has the matching captions; copy its video stream")
+    parser.add_argument("--title", help="one-line title in a separate header above the app")
+    add_encoding_arguments(parser)
     parser.add_argument("--source-audio", choices=["replace", "mix"], default="replace",
                         help="replace source audio, or mix it quietly below narration")
     parser.add_argument("--force", action="store_true")
@@ -51,15 +53,14 @@ def main():
 
     try:
         duration, (width, height) = probe(source)
-        band = caption_band(width)
         cues = json.loads(args.captions.read_text(encoding="utf-8"))
         if not isinstance(cues, list) or not cues: raise ValueError("captions must be a nonempty array")
         output.parent.mkdir(parents=True, exist_ok=True)
-        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        ffmpeg = get_ffmpeg()
         with tempfile.TemporaryDirectory(prefix="narration-", dir=output.parent) as temporary:
             work = Path(temporary)
             # Validate the complete timeline before doing speech synthesis.
-            make_subtitles(work / "captions.ass", cues, width, height + band, duration)
+            make_subtitles(work / "captions.ass", cues, width, height, duration)
             voice = PiperVoice.load(str(model))
             rate = voice.config.sample_rate
             timeline = np.zeros(math.ceil(duration * rate), dtype=np.float32)
@@ -103,12 +104,15 @@ def main():
                             "-map", "[a]"]
             else:
                 command += ["-map", "1:a:0"]
-            if args.no_captions:
+            if args.no_captions and not args.title and portable_video(source):
                 command += ["-c:v", "copy"]
+                encoding = {"encoder": "copy", "gpu": None, "ffmpeg": ffmpeg}
             else:
-                command += ["-vf", f"pad={width}:{height+band}:0:0:color=0x101010,ass=filename=captions.ass",
-                            "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-pix_fmt", "yuv420p"]
-            command += ["-c:a", "aac", "-b:a", "128k", "-t", str(duration),
+                filters, width, height = video_filters(work, (width, height), duration,
+                                                       None if args.no_captions else args.captions, args.title)
+                options, encoding = encoding_options(args.encoder, args.gpu)
+                command += ["-vf", ",".join(filters), *options]
+            command += ["-c:a", "aac", "-b:a", "192k", "-t", str(duration),
                         "-movflags", "+faststart", "output.mp4"]
             run(command, cwd=work)
             result = work / "output.mp4"
@@ -125,6 +129,8 @@ def main():
         print(json.dumps({"path": str(output), "duration_seconds": duration, "voice": model.name,
                           "speech": "local synthetic narration", "audio": "AAC", "source_audio": args.source_audio,
                           "captions_added": not args.no_captions, "cues": report, "decode_verified": True,
+                          "width": width, "height": height, "title": args.title, "encoding": encoding,
+                          "portable_mp4_verified": True,
                           "audible_audio_verified": True}, indent=2))
     except (ValueError, TypeError, KeyError, RuntimeError, OSError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"Narration export failed: {error}\n")

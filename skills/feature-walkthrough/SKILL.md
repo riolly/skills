@@ -5,9 +5,9 @@ description: Record narrated, captioned feature walkthroughs, compare app versio
 
 # Feature walkthrough
 
-Create a short video of the actual workflow, with a small set of steps the viewer can try. Deliver an MP4 with readable captions and, when useful, spoken narration. Aim for 30–90 seconds per workflow; use shorter clips for simple changes. Explain the result like the engineer who built it: what changed, why it helps, what to click, and what the viewer should see. Sound confident and interested without inventing benefits or overstating what was verified.
+Create a short video of the actual workflow, with a small set of steps the viewer can try. Deliver an MP4 with readable app text, a visible title, compact captions, and spoken narration by default. Use silent output when the user requests it. Aim for 30–90 seconds per workflow; use shorter clips for simple changes. Explain what changed, why it helps, what to click, and what the viewer should see. Support claims with the demonstrated behavior.
 
-For narration, read [spoken walkthroughs](references/narration.md). A local Piper voice can read the same timed text used for captions without an API key. Keep captions useful with sound muted. Prefer a silent video when the user asks for one or narration adds little.
+For every narrated recording, read [spoken walkthroughs](references/narration.md) before planning scene lengths. A local Piper voice reads the same timed text used for captions without an API key. Captions remain useful with sound muted. If voice setup fails, report the failure explicitly with the available captioned clip.
 
 ## Decide whether to record
 
@@ -40,9 +40,9 @@ Subagents may inherit the conversation or start with limited context. Give the r
 - this skill's directory, and the instruction to follow its recording and finishing sections
 - the app URL or port, the revision it should be serving, and any sample data to use
 - each action in order, with the result the viewer should see after it
-- the caption text, and whether narration is wanted
+- the title and caption text, the narration choice, and any required encoder or GPU
 - the absolute path for the final MP4
-- what to return: the final path, what the frames showed, and any step that failed
+- what to return: the final path, export report, frame review, playback checks, and any failed or unavailable check
 
 When a subagent drives the shared preview, leave that tab alone until it reports back. Review the returned file and key frames according to the recording steps below before delivery.
 
@@ -64,29 +64,37 @@ In T3 Code, use its collaborative browser tools. They already support recording;
 
 1. Call `preview_status`, then `preview_open` if no automation-capable tab is attached. Keep the returned `tabId` for all calls in the recording. Discover the exact schemas if these tools are lazy-loaded.
 2. Open the relevant app version with `preview_navigate`. Prefer `{target: {kind: 'environment-port', port: PORT, path: '/'}}` for a local server, or provide the exact feature route. Verify the loaded revision; an existing localhost origin may serve an older installed PWA from its service worker. Prefer a fresh port to changing that origin's saved data or service worker. If navigation fails, inspect the error and page diagnostics, correct the address or binding, and retry. A deployed app is suitable for a recording test, but do not present an older deployment as evidence of an unshipped change. Report an unreachable worktree server as a limitation.
-3. Use a readable, stable viewport, normally 1280×800. Inspect with `preview_snapshot` and rehearse the required actions before starting. Use sample data and avoid showing credentials. Do not clear an existing user's saved data to prepare a demo.
+3. Set an explicit stable viewport with `preview_resize`. Start with 1280×900 in T3 and inspect actual raw frames before selecting a larger capture. Its recorder can soften text at larger viewports despite reporting those larger dimensions. Use native 1920×1080 with recorders that retain that detail. Rehearse the actions with `preview_snapshot`. For dense screens, increase browser zoom or frame fewer controls while keeping titles and results visible. Use sample data and preserve the user's saved data.
 4. Call `preview_recording_start({tabId})`. Record its `startedAt` and each action's time for caption timing. Operate the app with the normal preview click, type, scroll, and press tools, using locators observed in the snapshot. Leave about 3–5 seconds after each result so the viewer can follow. For circles, rectangles, pointer wiggles, or orbit gestures, use the temporary annotation helper described in [advanced walkthroughs](references/advanced.md). T3 has no mouse-move tool; these gestures use a drawn pointer and do not move the OS mouse.
 5. Call `preview_recording_stop({tabId})`, including when an action fails. It returns a local video `path` after transferring the file. Preserve that path immediately; stopping again is not a recovery method. Respect the transfer limit documented by the current tool and split long workflows into separate clips. Do not assume audio or native-app windows are included.
-6. Verify that the returned file exists and decodes. Match captions to the actual video, not just the planned actions. Trim long idle time and keep loading failures out of a success walkthrough. Label mock data, simulations, or staging behavior when they affect what the viewer should expect.
+6. Inspect the raw video's measured dimensions and a frame of the smallest relevant app text. The requested viewport alone does not prove capture resolution. If text is unreadable, adjust zoom or framing and record again. Match captions to the actual video, trim long idle time, and label mock data or staging behavior when they affect expectations.
 
-Use `scripts/finish_video.py` for consistent MP4 conversion, trimming, and captions. Run it with `uv run`; its pinned dependency supplies FFmpeg without sudo. Inputs may be the native MP4 or a WebM recording. Example:
+## Export and verify
+
+Read [export quality](references/quality.md) for GPU setup and playback checks before exporting. The helpers preserve input resolution and use NVIDIA NVENC when a real encoding probe succeeds, with a reported CPU fallback. Their packaged FFmpeg works without sudo but lacks NVENC; the quality guide covers selecting a capable build.
+
+1. Finish trimming or composition before adding narration. Inputs may be native MP4 or WebM. For example:
 
 ```sh
 uv run "$WALKTHROUGH_SKILL_DIR"/scripts/finish_video.py \
   /absolute/path/raw.mp4 /absolute/path/artifacts/walkthrough/feature.mp4 \
-  --captions /absolute/path/captions.json --start 3 --duration 40
+  --start 3 --duration 40
 ```
 
-Caption times are seconds relative to the final trimmed clip. Write JSON as:
+2. Write cues timed in seconds relative to the final trimmed clip, allowing each sentence to finish:
 
 ```json
 [
-  {"start": 0, "end": 5, "text": "Open Practise, then choose Programming."},
-  {"start": 5, "end": 10, "text": "Search for React. The list shows matching questions."}
+  {"start": 0, "end": 7, "text": "Open Practise, then choose Programming."},
+  {"start": 7, "end": 14, "text": "Search for React. The list shows matching questions."}
 ]
 ```
 
-The helper scales to at most 1280 pixels wide, puts captions in a separate band below the app, produces H.264 MP4 with fast start, and checks the result by decoding it. It never replaces the input. Existing output requires `--force`. Read several extracted frames, including each key result, to check timing and readability before delivery.
+3. Run `scripts/narrate_video.py` with `--captions cues.json` and `--title "A concise walkthrough title"` on the edited clip, as shown in the narration guide. For a composition that already has source titles, preserve those headers and omit `--title`. This adds the caption footer once. For explicitly silent output, pass `--captions` and `--title` to `finish_video.py` instead.
+4. Require the final export report to confirm portable MP4 and complete decoding, plus audible audio for narrated output. Inspect extracted frames at every key result and cue boundary. Titles must remain visible and captions must fit below the app. Check that app text stays readable at normal playback size.
+5. Open the final MP4 in the available browser/player and verify playback advances, seeking works, and sound is present. Serve that same file with a download link, save a copy, and verify the copy plays. Report any unavailable playback or listening check. Deliver only after these checks pass or the remaining limitation is stated.
+
+The helpers produce 8-bit H.264 video, AAC audio when present, and a finalized fast-start MP4. They preserve the input and require `--force` for an existing output. Deliver the final exported `.mp4`, using its actual path.
 
 ## When T3 preview tools are absent
 

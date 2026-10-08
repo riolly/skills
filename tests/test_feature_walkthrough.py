@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11,<3.14"
-# dependencies = ["playwright==1.63.0", "imageio-ffmpeg==0.6.0"]
+# dependencies = ["playwright==1.63.0", "imageio-ffmpeg==0.6.0", "piper-tts==1.3.0"]
 # ///
 """Integration checks: uv run --python 3.12 tests/test_feature_walkthrough.py."""
 
@@ -18,6 +18,8 @@ from unittest import mock
 import imageio_ffmpeg
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "skills/feature-walkthrough/scripts"
+sys.path.insert(0, str(SCRIPTS))
+import finish_video as finisher
 spec = importlib.util.spec_from_file_location("record_browser", SCRIPTS / "record_browser.py")
 recorder = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(recorder)
@@ -60,14 +62,14 @@ class WalkthroughIntegration(unittest.TestCase):
         if streamed: (self.work / name).write_bytes(result.stdout)
         return self.work / name
 
-    def shows(self, path, matches, rows=None):
+    def shows(self, path, matches, rows=None, sample_step=30):
         """Decode the video and report whether a frame has enough sampled pixels of a colour."""
         frames = imageio_ffmpeg.read_frames(str(path), pix_fmt="rgb24")
         width = next(frames)["size"][0]
         try:
             for frame in frames:
                 pixels = memoryview(frame)[:rows * width * 3 if rows else None]
-                if sum(matches(*pixels[i:i+3]) for i in range(0, len(pixels), 30)) > 30: return True
+                if sum(matches(*pixels[i:i+3]) for i in range(0, len(pixels), sample_step)) > 30: return True
             return False
         finally: frames.close()
 
@@ -84,7 +86,7 @@ class WalkthroughIntegration(unittest.TestCase):
         raw = self.work / "raw.webm"
         report = recorder.record(self.scenario, raw)
         self.assertEqual(len(report["steps"]), 4)
-        self.assertEqual(self.metadata(raw)["size"], (1280, 800))
+        self.assertEqual(self.metadata(raw)["size"], (1920, 1080))
         output = self.work / "final.mp4"
         result = self.cli("finish_video.py", raw, output)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -181,9 +183,87 @@ class WalkthroughIntegration(unittest.TestCase):
         captions = self.work / "captions.json"
         captions.write_text(json.dumps([{"start": 0, "end": 1, "text": "Both versions"}]))
         output, report = self.compose("Baseline", "--layout", "side-by-side", "--captions", captions)
-        # A 2560-pixel frame needs twice the caption band of a 1280-pixel one.
-        self.assertEqual((report["width"], report["height"]), (2560, 852 + 224))
-        self.assertTrue(self.shows(output, self.white, rows=52), "clip titles are missing from the header")
+        self.assertEqual((report["width"], report["height"]), (3840, 1158 + 168))
+        self.assertTrue(self.shows(output, self.white, rows=78), "clip titles are missing from the header")
+        # Finishing a comparison must preserve both source labels and full width.
+        final = self.work / "finished.mp4"
+        result = self.cli("finish_video.py", output, final)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.metadata(final)["size"], (3840, 1326))
+        self.assertTrue(self.shows(final, self.white, rows=78))
+
+    def test_full_resolution_header_and_compact_captions_survive_export(self):
+        source = self.clip("full.mp4", "-vf", "scale=1920:1080")
+        cues = self.work / "captions.json"
+        cues.write_text(json.dumps([{"start": 0, "end": 1, "text": "Read this caption below the app."}]))
+        output = self.work / "full-final.mp4"
+        result = self.cli("finish_video.py", source, output, "--captions", cues, "--title", "A visible title")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual((report["width"], report["height"]), (1920, 1254))
+        self.assertTrue(report["portable_mp4_verified"])
+        self.assertTrue(self.shows(output, self.white, rows=78))
+        pixels = imageio_ffmpeg.read_frames(str(output), pix_fmt="rgb24")
+        next(pixels)
+        frame = next(pixels)
+        pixels.close()
+        footer = memoryview(frame)[1158 * 1920 * 3:]
+        self.assertGreater(sum(self.white(*footer[i:i+3]) for i in range(0, len(footer), 3)), 100)
+
+    def test_gpu_probe_falls_back_transparently_or_fails_when_required(self):
+        failure = subprocess.CompletedProcess([], 1, "", "NVENC unavailable")
+        with mock.patch.object(finisher.subprocess, "run", return_value=failure):
+            options, report = finisher.encoding_options("auto")
+            self.assertIn("libx264", options)
+            self.assertEqual(report["fallback_reason"], "NVENC unavailable")
+            with self.assertRaisesRegex(ValueError, "NVIDIA encoding unavailable"):
+                finisher.encoding_options("nvenc")
+        with mock.patch.object(finisher.subprocess, "run", side_effect=subprocess.TimeoutExpired("ffmpeg", 30)):
+            _, report = finisher.encoding_options("auto")
+            self.assertIn("timed out", report["fallback_reason"])
+
+    @unittest.skipUnless(os.environ.get("WALKTHROUGH_TEST_NVENC") == "1", "opt-in NVIDIA hardware check")
+    def test_real_nvidia_export(self):
+        result = self.cli("finish_video.py", self.clip("gpu.mp4"), self.work / "gpu-final.mp4",
+                          "--encoder", "nvenc", "--gpu", "0")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["encoding"]["encoder"], "h264_nvenc")
+        self.assertTrue(report["portable_mp4_verified"])
+
+    voice = Path.home() / ".local/share/feature-walkthrough/voices/en_US-ljspeech-high.onnx"
+
+    @unittest.skipUnless(voice.is_file(), "local Piper voice is not installed")
+    def test_narration_is_audible_and_caption_band_is_added_once(self):
+        source = self.clip("speech.webm", "-vf", "tpad=stop_mode=clone:stop_duration=5", "-c:v", "libvpx")
+        cues = self.work / "speech.json"
+        cues.write_text(json.dumps([{"start": 0, "end": 6, "text": "The result is saved."}]))
+        narrated = self.work / "narrated.mp4"
+        result = self.cli("narrate_video.py", source, narrated, "--captions", cues, "--title", "Saved result")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertTrue(report["audible_audio_verified"])
+        self.assertEqual((report["width"], report["height"]), (640, 508))
+        self.assertTrue(self.shows(narrated, self.white, rows=48, sample_step=3))
+        metadata = self.metadata(narrated)
+        self.assertEqual(metadata["audio_codec"], "aac")
+        self.assertEqual(metadata["codec"], "h264")
+        copied = self.work / "renarrated.mp4"
+        result = self.cli("narrate_video.py", narrated, copied, "--captions", cues, "--no-captions")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.metadata(copied)["size"], (640, 508))
+        self.assertEqual(json.loads(result.stdout)["encoding"]["encoder"], "copy")
+
+    @unittest.skipUnless(voice.is_file(), "local Piper voice is not installed")
+    def test_no_captions_on_webm_still_exports_portable_mp4(self):
+        source = self.clip("speech.webm", "-vf", "tpad=stop_mode=clone:stop_duration=5", "-c:v", "libvpx")
+        cues = self.work / "speech.json"
+        cues.write_text(json.dumps([{"start": 0, "end": 6, "text": "The result is saved."}]))
+        result = self.cli("narrate_video.py", source, self.work / "speech.mp4", "--captions", cues, "--no-captions")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertTrue(report["portable_mp4_verified"])
+        self.assertNotEqual(report["encoding"]["encoder"], "copy")
 
     def test_labels_are_read_as_utf8_in_any_locale(self):
         env = {**os.environ, "LC_ALL": "C", "PYTHONUTF8": "0", "PYTHONCOERCECLOCALE": "0"}
