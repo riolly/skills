@@ -29,7 +29,20 @@ The answer holds for the whole task. After a decline, do not ask again or record
 
 The written answer must not wait for the video. Finish and verify the work, then send the complete answer: what changed, the steps to try, and a line saying the recording will follow. Start recording after that.
 
-Run the recording in the background when the client allows it. A background subagent can drive the browser, or `scripts/record_browser.py` and the finishing helpers can run as background commands. Post the video as a short follow-up when it is ready. If the client can only record in the foreground, still send the answer first, then record in the same turn.
+Hand the recording to a background subagent when the client has one, as Claude Code does. This is the default. The user's yes to a recording also approves that subagent. The main thread sends the answer and ends its turn; the client wakes it when the subagent finishes, and it posts the video as a short follow-up.
+
+The subagent starts with no knowledge of the conversation, so brief it completely:
+
+- this skill's directory, and the instruction to follow its recording and finishing sections
+- the app URL or port, the revision it should be serving, and any sample data to use
+- each action in order, with the result the viewer should see after it
+- the caption text, and whether narration is wanted
+- the absolute path for the final MP4
+- what to return: the final path, what the frames showed, and any step that failed
+
+Leave the preview tab alone until the subagent reports back, because it drives the same browser. Check the returned file exists before posting it.
+
+Without subagents, run `scripts/record_browser.py` and the finishing helpers as background commands; the recorder plays a saved scenario unattended. If the client can only record in the foreground, still send the answer first, then record in the same turn.
 
 A recording that fails or runs long is reported in the follow-up. It does not reopen the finished answer.
 
