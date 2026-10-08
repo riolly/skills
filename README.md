@@ -5,6 +5,7 @@ Agent skills for Claude Code and Codex.
 | Skill | What it does |
 | --- | --- |
 | [`designing-ui`](skills/designing-ui/SKILL.md) | Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states. Loads when a task builds or restyles UI, creates a theme, or reviews how a UI looks. |
+| [`feature-walkthrough`](skills/feature-walkthrough/SKILL.md) | Record real browser workflows with spoken narration, matching captions, circles, rectangles and pointer gestures. Compare verified app versions in labelled chapters or side by side, and include terminal output. |
 
 The rules in `designing-ui` come from [docs/ui-design-principles.md](docs/ui-design-principles.md), which records the sources and the decisions behind them.
 
@@ -25,6 +26,21 @@ The CLI asks which agents to install for. To install for every project on the ma
 ```bash
 npx skills add riolly/skills --skill designing-ui -g -a claude-code -y
 ```
+
+Install the video walkthrough skill for both Claude Code and Codex:
+
+```bash
+npx skills add riolly/skills --skill feature-walkthrough -g -a claude-code -a codex -y
+```
+
+Search the public skills index or list the repository directly:
+
+```bash
+npx skills find feature-walkthrough --owner riolly
+npx skills add riolly/skills --list
+```
+
+`find` uses the skills.sh index, so a newly merged skill may take time to appear. Direct `add` discovers the repository's `SKILL.md` files without waiting for the search index. The [skills.sh FAQ](https://skills.sh/docs/faq) explains how installations feed discovery.
 
 Update or remove later:
 
@@ -49,7 +65,7 @@ Or inside a Claude Code session:
 /plugin install riolly@riolly-skills
 ```
 
-Installed this way, the skill is named `riolly:designing-ui`. Update later with:
+Installed this way, the skills are named `riolly:designing-ui` and `riolly:feature-walkthrough`. Update later with:
 
 ```bash
 claude plugin marketplace update riolly-skills
@@ -62,6 +78,7 @@ claude plugin update riolly@riolly-skills
 git clone https://github.com/riolly/skills
 mkdir -p ~/.claude/skills
 cp -r skills/skills/designing-ui ~/.claude/skills/
+cp -r skills/skills/feature-walkthrough ~/.claude/skills/
 ```
 
 Copy into a project's `.claude/skills/` instead to install it for that project only.
@@ -69,3 +86,17 @@ Copy into a project's `.claude/skills/` instead to install it for that project o
 ## Use
 
 Claude Code loads the skill on its own when a task involves UI. To call it directly, type `/designing-ui`, or `/riolly:designing-ui` when installed as a plugin.
+
+For a feature report, ask for a short narrated walkthrough or invoke `/feature-walkthrough` in Claude Code, `/riolly:feature-walkthrough` through the plugin, or `$feature-walkthrough` in Codex. It explains what changed, demonstrates the actual result, and gives you steps to try.
+
+The skill files install through `npx`; recording dependencies are separate. T3 Code uses its shared preview recorder. Other environments can use the bundled Playwright recorder. Install `uv`, then follow [portable recording](skills/feature-walkthrough/references/portable.md) for browser setup and [narration](skills/feature-walkthrough/references/narration.md) for the optional local voice. Terminal clips additionally need asciinema and agg. No paid speech API is required. Terminal clients receive a local MP4 path; T3 can embed the video.
+
+## Verify the walkthrough helpers
+
+After the pinned browser setup in the portable recording guide:
+
+```bash
+uv run --python 3.12 tests/test_feature_walkthrough.py
+```
+
+The integration checks record real actions against a temporary test page, verify that annotations appear in the video, decode the MP4 export, and reject failed workflows or accidental overwrites. They also cover marks over modal dialogs and under a strict content security policy, recordings without a duration header, and side-by-side composition. The terminal checks are skipped unless asciinema and agg are installed. Narration is not covered, since it needs the voice download.
