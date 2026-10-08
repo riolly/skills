@@ -11,9 +11,9 @@ For narration, read [spoken walkthroughs](references/narration.md). A local Pipe
 
 ## Decide whether to record
 
-A recording costs minutes, and most changes do not need one. Settle the question while planning the work, before any code is written, so the end of the task never stalls on it.
+A recording costs minutes, and most changes do not need one. Decide early when possible, and revise the choice if the work reveals a flow worth demonstrating.
 
-Record without asking when the user requested a video, demo, or walkthrough, or invoked this skill by name. Otherwise, judge how hard the change is to check by hand:
+Honor the user's current and earlier recording preferences, including applicable `AGENTS.md` instructions. Record without asking when a video is already requested, or the user invoked this skill to create one. When there is no existing preference, judge how hard the change is to check by hand:
 
 | Checking the change | What to do |
 | --- | --- |
@@ -21,17 +21,21 @@ Record without asking when the user requested a video, demo, or walkthrough, or 
 | Medium. Several steps or states, or a result that is easier to see than to describe. | Ask once, with the other planning questions. Offer written steps, the recommended choice, or a short recording. |
 | Hard. A long flow, timing or animation, a before-and-after comparison, or several apps or tabs. | Ask once, with the other planning questions. Offer a recording, the recommended choice, or written steps. |
 
-Use the client's question tool when it has one, and name what the recording would show so the choice is concrete. When the task has no planning step, ask before starting the work. When nobody can answer, as in a non-interactive run, skip the recording and note in the final answer that one is available on request.
+Name what the recording would show, and use a question tool permitted in the current mode when available. Ask during planning when possible; with an asynchronous question tool, continue implementation and verification while waiting. When nobody can answer, as in a non-interactive run, use written steps unless a recording was already requested.
 
 The answer holds for the whole task. After a decline, do not ask again or record anyway; the user can still request a video later. Stop reading here when the answer is no.
 
 ## Keep the answer ahead of the video
 
-The written answer must not wait for the video. Finish and verify the work, then send the complete answer: what changed, the steps to try, and a line saying the recording will follow. Start recording after that.
+Finish and verify the work, then send the written result as a progress update before recording: what changed, the steps to try, and the expected results.
 
-Hand the recording to a background subagent when the client has one, as Claude Code does. This is the default. The user's yes to a recording also approves that subagent. The main thread sends the answer and ends its turn; the client wakes it when the subagent finishes, and it posts the video as a short follow-up.
+In Codex, use a commentary message for this update and keep the turn active while recording. The final response must include the written result and the verified video or a concrete recording limitation. A background command or subagent alone does not guarantee an automatic follow-up after the turn ends.
 
-The subagent starts with no knowledge of the conversation, so brief it completely:
+Prefer a recording subagent when delegation is available and allowed by the runtime and user instructions. Otherwise, record in the main agent. Choose the recording backend independently: use T3's shared preview when available, and use the portable recorder only through the fallback described below. Portable recording and finishing commands may run in the background, but retain their session or job handles and collect their results before final delivery.
+
+Only in a client that explicitly supports keeping the job alive and automatically resuming the main thread after completion may the video follow an ended turn. In that case, start the recording job before ending the turn, include the written result and a line saying the video will follow, and verify the finished video before posting the follow-up. Do not infer this capability from the presence of subagent tools, including in Claude Code.
+
+Subagents may inherit the conversation or start with limited context. Give the recording agent a self-contained brief either way:
 
 - this skill's directory, and the instruction to follow its recording and finishing sections
 - the app URL or port, the revision it should be serving, and any sample data to use
@@ -40,11 +44,9 @@ The subagent starts with no knowledge of the conversation, so brief it completel
 - the absolute path for the final MP4
 - what to return: the final path, what the frames showed, and any step that failed
 
-Leave the preview tab alone until the subagent reports back, because it drives the same browser. Check the returned file exists before posting it.
+When a subagent drives the shared preview, leave that tab alone until it reports back. Review the returned file and key frames according to the recording steps below before delivery.
 
-Without subagents, run `scripts/record_browser.py` and the finishing helpers as background commands; the recorder plays a saved scenario unattended. If the client can only record in the foreground, still send the answer first, then record in the same turn.
-
-A recording that fails or runs long is reported in the follow-up. It does not reopen the finished answer.
+If recording fails, report the limitation with the written steps in the final response or supported follow-up. Preserve the verified feature result without claiming that an unfinished recording is ready.
 
 ## Locate the installed helpers
 
