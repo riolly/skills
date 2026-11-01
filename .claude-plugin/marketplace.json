@@ -9,7 +9,7 @@
     {
       "name": "riolly",
       "source": ".",
-      "description": "Agent skills from riolly/skills. Includes designing-ui for UI design and feature-walkthrough for narrated, annotated video demos.",
+      "description": "Agent skills from riolly/skills. Includes designing-ui for UI design, feature-walkthrough for narrated, annotated video demos, and tailscale-machine for adding machines to a tailnet.",
       "homepage": "https://github.com/riolly/skills",
       "repository": "https://github.com/riolly/skills"
     }

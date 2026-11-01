@@ -6,6 +6,7 @@ Agent skills for Claude Code and Codex.
 | --- | --- |
 | [`designing-ui`](skills/designing-ui/SKILL.md) | Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states. Loads when a task builds or restyles UI, creates a theme, or reviews how a UI looks. |
 | [`feature-walkthrough`](skills/feature-walkthrough/SKILL.md) | Record real browser workflows with spoken narration, matching captions, circles, rectangles and pointer gestures. Compare verified app versions in labelled chapters or side by side, and include terminal output. |
+| [`tailscale-machine`](skills/tailscale-machine/SKILL.md) | Add a machine to a tailnet and get it connecting directly, or work out why two machines are slow or relayed. Keeps your own addresses in a private local file. |
 
 The rules in `designing-ui` come from [docs/ui-design-principles.md](docs/ui-design-principles.md), which records the sources and the decisions behind them.
 
@@ -79,6 +80,7 @@ git clone https://github.com/riolly/skills
 mkdir -p ~/.claude/skills
 cp -r skills/skills/designing-ui ~/.claude/skills/
 cp -r skills/skills/feature-walkthrough ~/.claude/skills/
+cp -r skills/skills/tailscale-machine ~/.claude/skills/
 ```
 
 Copy into a project's `.claude/skills/` instead to install it for that project only.
