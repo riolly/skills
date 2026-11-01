@@ -14,7 +14,7 @@ Machine names, addresses and ISP details belong in `~/.config/tailscale-machine/
 ## Add a new machine
 
 1. **Install and sign in.** Use the same account as the other machines. On Linux: `curl -fsSL https://tailscale.com/install.sh | sh`, then `sudo tailscale up`.
-2. **Put the CLI on PATH.** On macOS the app may not do this, and the binary is at `/Applications/Tailscale.app/Contents/MacOS/Tailscale`. Use the app's CLI integration setting or a symlink. Scripts that run plain `tailscale` otherwise behave as if Tailscale isn't installed.
+2. **Put the CLI on PATH.** On macOS the app may not do this, and the binary is at `/Applications/Tailscale.app/Contents/MacOS/Tailscale`. On the App Store build, put a wrapper script in `~/.local/bin/tailscale` that runs `TAILSCALE_BE_CLI=1 exec /Applications/Tailscale.app/Contents/MacOS/Tailscale "$@"`. Don't symlink it: the binary crashes with a bundle identifier error. A shell alias won't work either, because scripts don't see aliases. Scripts that run plain `tailscale` otherwise behave as if Tailscale isn't installed.
 3. **Turn on IPv6.**
    - macOS: `networksetup -setv6automatic Wi-Fi`.
    - Linux: check with `ip -6 addr show scope global`.
