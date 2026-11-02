@@ -4,7 +4,7 @@ Agent skills for Claude Code and Codex.
 
 | Skill | What it does |
 | --- | --- |
-| [`designing-ui`](skills/designing-ui/SKILL.md) | Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states. Loads when a task builds or restyles UI, creates a theme, or reviews how a UI looks. |
+| [`designing-ui`](skills/designing-ui/SKILL.md) | Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states, with a contrast checker and a branch for shadcn/ui projects. Loads when a task builds or restyles UI, creates a theme, or reviews how a UI looks. |
 | [`feature-walkthrough`](skills/feature-walkthrough/SKILL.md) | Record real browser workflows with spoken narration, matching captions, circles, rectangles and pointer gestures. Compare verified app versions in labelled chapters or side by side, and include terminal output. |
 | [`tailscale-machine`](skills/tailscale-machine/SKILL.md) | Add a machine to a tailnet and get it connecting directly, or work out why two machines are slow or relayed. Keeps your own addresses in a private local file. |
 
@@ -94,6 +94,12 @@ For a feature report, ask for a short narrated walkthrough or invoke `/feature-w
 Existing recording preferences, including `AGENTS.md` instructions, take precedence. Otherwise, the skill gives written steps for changes that are obvious to check and asks once about a recording for harder ones. In Codex, the written result arrives as a progress update before recording, and the final response includes the verified video or a recording limitation. A recording subagent is preferred when available and allowed; T3 uses its shared preview recorder with or without subagents. Delivery after the turn ends requires a client that explicitly supports automatic resumption.
 
 The skill files install through `npx`; recording dependencies are separate. T3 Code uses its shared preview recorder with native framing checked for sharp text. Other environments can use the bundled Playwright recorder at 1920×1080. Install `uv`, then follow [portable recording](skills/feature-walkthrough/references/portable.md) for browser setup and [narration](skills/feature-walkthrough/references/narration.md) for the default local voice. Exports preserve source resolution and add a separate title and compact captions. [Export quality](skills/feature-walkthrough/references/quality.md) covers NVIDIA encoding, playback, and downloaded-copy checks. Terminal clips additionally need asciinema and agg. No paid speech API is required. Terminal clients receive a local MP4 path; T3 can embed the video.
+
+## Verify the contrast checker
+
+```bash
+python3 tests/test_contrast.py
+```
 
 ## Verify the walkthrough helpers
 

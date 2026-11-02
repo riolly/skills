@@ -8,7 +8,7 @@ This doc holds the UI design rules we kept from two sources, with the points we 
 
 | Tag | Source | What was read |
 | --- | --- | --- |
-| book | Refactoring UI, Adam Wathan and Steve Schoger (2018 PDF) | All 218 pages, figures included |
+| book | Refactoring UI, Adam Wathan and Steve Schoger (2018 PDF) | All 218 pages, figures included. Re-read on 2 November 2026 from the EPUB, 252 numbered pages: all text and a sample of five figures |
 | shadcn | [shadcn/ui docs](https://ui.shadcn.com/docs) and [repo](https://github.com/shadcn-ui/ui), as of 5 October 2026 | Introduction, [theming](https://ui.shadcn.com/docs/theming), [Typeset](https://ui.shadcn.com/docs/typeset), RTL, [changelog](https://ui.shadcn.com/docs/changelog), the [agent skill rules](https://github.com/shadcn-ui/ui/tree/main/skills/shadcn), component source and the eight style sheets |
 
 A rule tagged "both" appears in the book and is built into shadcn's defaults. "Ours" marks a limit or addition we agreed on while reviewing the two.
@@ -29,6 +29,26 @@ Start with one feature, design it in low fidelity, build it early, and make each
 | Review what gets installed | Read added files, fix imports and icons to match the project, and never overwrite local changes without approval. | shadcn |
 | Start with a feature, not the shell | Design one working feature first, such as a search form. Add a shell block once a few features show what navigation is needed. | book, decided |
 | Short path for a small edit | For an edit to one component, read the system, make the change, then check that component and what sits beside it. | ours |
+
+## Precedence
+
+Decided 1 November 2026. Where a rule and a project's system disagree, the kind of rule decides.
+
+| Kind | Covers | What happens |
+| --- | --- | --- |
+| Floor | Contrast, input boundaries, focus, target size, names, the states of a data region, status meaning | Holds everywhere. A project's defaults never excuse it. |
+| Judgement | Rank, grouping and text | Applies at every use site where the system leaves the choice open. |
+| Look | Shadows, surface layering, radius, density, weights, motion, border treatment, decoration, palette | The project's system decides. These rules apply where it is silent, or when building a system. |
+
+A failure that starts at the use site is fixed there. A failure that starts in a token or shared component is a system finding: report it, and fix it when the task is about the system or the user approves.
+
+| Project | Where changes go | Extra reference |
+| --- | --- | --- |
+| No system | Build one | foundations.md |
+| Owns its source, such as shadcn/ui | Component source and theme | shadcn.md |
+| Packaged library, such as MUI or Mantine | The library's theme | None |
+
+The skill's review route is read-only, and restyling and theme changes have their own routes. shadcn's defaults fail several floors as of 31 October 2026; shadcn.md lists each with its measured value and fix.
 
 ## Hierarchy
 
@@ -56,7 +76,7 @@ Spacing shows what belongs together, so leave more space around a group than ins
 | Rule | In practice | From |
 | --- | --- | --- |
 | Group by spacing | Label to input is tighter than field to field. shadcn's Vega style uses 12px inside a field and 28px between fields. Same rule for headings, list items and icon-plus-count pairs. | both |
-| Keep helper text with its label | Beside a switch, checkbox, radio or other inline control, the label and description form one text stack, spaced by a small scale step such as 4 or 8px when available. Under an input, the description sits no further from the control than the label does. The larger field-to-field gap goes outside the field. When the project's field component sets these gaps, use them, and correct a gap that is too large in the component's source. Tightening text never shrinks the control's target size. | ours |
+| Keep helper text with its label | Beside a switch, checkbox, radio or other inline control, the label and description form one text stack, spaced by a small scale step such as 4 or 8px when available. Under an input, the description sits no further from the control than the label does. The larger field-to-field gap goes outside the field. When the project's field component sets these gaps, use them, and correct a gap that is too large in the component's source or theme. Tightening text never shrinks the control's target size. | ours |
 | Non-linear spacing scale | Steps at least about 25% apart, built on 16px: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 and up. | book |
 | Keep the scale's meaning fixed | Change density through component sizes, never by redefining what a spacing step means. | shadcn |
 | Don't fill the screen | Give content the width it needs. If a narrow form looks lost, split it into columns instead of stretching it. | book |
@@ -106,7 +126,7 @@ Components use role tokens instead of raw colours, and every surface token has a
 | Status gets its own tokens | Add success and warning pairs. Don't drop the meaning, and don't reach for a raw green. | ours, from both |
 | Greys can carry a temperature | Tint greys slightly cool or warm and keep the tint consistent. Avoid pure black for text. | both |
 | Don't rely on colour alone | Pair colour with an icon, a sign or text. In charts prefer light-versus-dark over different hues. | book |
-| Flip the contrast for badges | Dark text on a light tint instead of white text on a strong colour. | both |
+| Flip the contrast for badges | Strong text on a soft tint instead of white text on a strong colour, in either mode. | both |
 | Rotate hue for contrast | For coloured text on a coloured surface, shift toward a brighter hue instead of toward white. | book |
 | Secondary text on a coloured surface | On flat colour, reduced opacity is acceptable. Over images or patterns, pick a solid colour in the surface's hue. | book, with our limit |
 | Contrast floor | 4.5:1 for normal text, 3:1 for large text, 3:1 for input boundaries and focus rings. Check muted text on muted surfaces separately. | book and ours |
@@ -114,7 +134,7 @@ Components use role tokens instead of raw colours, and every surface token has a
 | Three colour groups | Neutrals for most of the interface, one brand colour for primary actions and active states, and accent colours for status and highlights. | book, decided |
 | Decoration is quiet outside marketing pages | On app screens and other non-marketing pages, accent borders, tints and patterns are allowed as long as they are subtle and never pull attention from the content; keep their contrast low. Marketing pages can use decoration much more freely. | book, decided |
 | Decoration earns its place as a cue | Its best use is helping people tell similar items apart quickly, such as a pattern or colour tile on each row of a file list where only the title differs. | ours, decided |
-| Compute contrast from the final colours | Calculate the ratio from the final colour values. Blend a translucent colour with the surface behind it first. A token's name is no evidence that the pair passes. | ours |
+| Compute contrast from the final colours | Measure the ratio from the final colour values with the skill's contrast script. Blend a translucent colour with the surface behind it first. A token's name is no evidence that the pair passes. | ours |
 
 ## Depth and surfaces
 
@@ -125,12 +145,12 @@ A shadow says how far a surface sits above the page, so choose it by layer and n
 | An elevation scale | About five shadows from small to large: slight for raised controls and cards, medium for menus and popovers, large for dialogs. | both |
 | Two-part shadows | A large soft shadow for direct light plus a tight dark one for contact. Fade the tight one as elevation rises. | book |
 | Depth as feedback | Lift an item while it is dragged. Flatten or nudge a button when pressed; shadcn shifts it down 1px. | both |
-| Lighter is closer | Raised surfaces are lighter than the page and wells are darker. This works without shadows and in dark mode, where a card is lighter than the background. | both |
+| Lighter is closer | Raised surfaces are lighter than the page and wells are darker. This works without shadows and in dark mode, where a card is lighter than the background. On a white page, a raised surface stays white and takes its edge from a soft border or shadow. | both, with our limit |
 | Soft edges | Draw a surface's edge as a 1px line at about 10% of the text colour, so it adapts to any background and to dark mode. | shadcn |
 | One radius, derived | A single radius value generates the whole scale, and small controls cap their radius so large-radius themes don't distort them. Don't mix square and rounded corners. | both |
 | Overlap to create layers | Let a card cross the boundary between two backgrounds. Overlapping images get a border in the background colour. | book |
 | Overlays manage their own stacking | Don't hand-set z-index on dialogs, popovers and menus. | shadcn |
-| Quick transitions | Overlays enter and leave in about 100ms. | shadcn |
+| Quick transitions | Overlays that fade enter and leave in about 100ms; panels that slide in take about 200ms. | shadcn, with our limit |
 
 ## Components and composition
 
@@ -140,7 +160,7 @@ Components share one composable shape, and their look changes through variants, 
 | --- | --- | --- |
 | One interface everywhere | Every component, including wrapped third-party ones, is built from named parts with the same conventions. | shadcn |
 | Use the full structure | A card has header, title, description, content and footer. Menu and select items sit inside a group. Tab triggers sit inside a list. | shadcn |
-| Change the look in this order | Built-in variant, then a token, then a new variant in the component's source. Not colour or type overrides where it is used. | shadcn |
+| Change the look in this order | Built-in variant, then a new variant in the component's source, or in the library's theme when the source is packaged. Change a token's value only when the change belongs everywhere the token is used. Not colour or type overrides where it is used. | shadcn, with our limit |
 | Components adapt to their contents | Padding and layout respond to what is inside (an icon, a footer, an image) instead of to extra props. | shadcn |
 | Components size their icons | Don't add size or margin classes to icons inside buttons, menus or alerts. Mark the icon's position and let the component space it. | shadcn |
 | Compose instead of adding props | A button has no loading prop: put a spinner in it and disable it. | shadcn |
@@ -159,6 +179,11 @@ Components share one composable shape, and their look changes through variants, 
 | Bottom panel on mobile | Drawer |
 | Small contextual content on click | Popover |
 | Quick information on hover | Hover card |
+| Short label for an icon or control | Tooltip |
+| List of actions from a trigger | Dropdown menu |
+| Brief result of an action | Toast |
+
+Content in a hover card or tooltip is also reachable by keyboard and on touch.
 
 ## Images and icons
 
@@ -185,14 +210,36 @@ Design the empty, no-results, loading, failed, invalid and focused states with t
 | Invalid shows in two places | Mark the field so label and message change, and mark the control for assistive technology. Pair the colour with a message. | shadcn and book |
 | Every dialog has a title, every field a label | Hidden visually if the content speaks for itself, never removed. | both |
 | Visible focus | A ring on every focusable control, at 3:1 or better against its background. | shadcn and ours |
-| Behaviour comes from a headless library | Keyboard handling, focus trapping and ARIA come from Base UI, Radix or React Aria. Don't rebuild them. | shadcn |
+| Behaviour comes from a headless library | Keyboard handling, focus trapping and ARIA come from Base UI, Radix or React Aria. Don't rebuild them. Without one, use native elements and build a custom widget to its ARIA pattern. | shadcn, with our limit |
 | Right-to-left ready | Use start and end instead of left and right. Directional icons and slide animations flip. | shadcn |
 | Use the feedback components | Alert for callouts, badge for status, skeleton for loading, instead of hand-styled blocks. | shadcn |
 | No results is its own state | A search or filter that matches nothing says so, keeps the query and filters in view, and offers a way to clear them. It is a separate state from empty. | ours |
 | Refreshing keeps the content | Content already on screen stays there while it reloads, with a small spinner to show the refresh. | ours |
 | Failed requests are designed | A request that fails shows a message saying what went wrong and a retry action. | ours |
-| Target size | Every control has a click area of at least 24px, and 44px on touch screens. A small icon keeps its size inside a larger button. | ours |
+| Target size | Every control has a click area of at least 24px, and 44px on touch screens. A small icon keeps its size inside a larger button, and a small control extends its hit area past its visible edge. | ours |
 | Look at the states a still page hides | When checking a rendered screen, open each menu and overlay, tab to a control and submit an invalid value, and look at each result. | ours |
+
+## Added from the second read
+
+Reading the book again on 2 November 2026 added these rules. The finishing touches live in the skill's finishing.md.
+
+| Rule | In practice | From |
+| --- | --- | --- |
+| Pick by elimination | Try a step and the steps either side, then re-centre when an outer one wins. | book |
+| Remove space on generous pages | Start with too much space and remove it until the layout holds. | book |
+| Sections keep their own width | A section stays at its own width when the nav above it spans the page. Percentages are for elements meant to scale. | book |
+| Wrapped list items | List items that wrap sit further apart than their own lines. | book |
+| Surfaces that differ take no border | When two surfaces already differ in background, remove the border between them. | book |
+| Links in running text | A link inside a paragraph stands out, and reads as a link by more than colour. | book and ours |
+| Text follows the reading direction | Replaces the book's left-align rule, so right-to-left text works. When one centred block runs long, shorten its copy. | book, with our limit |
+| Large text is defined | 24px and up, or about 19px and up when bold. The book's figure of about 18px mixes up points and pixels. | ours, from WCAG |
+| Palette from three anchors | A base that works as a button background, a darkest shade for text and a lightest for a tint, then the midpoints. | book |
+| Light hues rotate as they darken | Yellow moves toward orange by about 20 to 30°. Tailwind's yellow does the same in OKLCH, from 98° at 300 to 58° at 900. | book, confirmed in OKLCH |
+| Category accents | Colour that tells similar items apart comes from a fixed set of category tokens. | book |
+| A closer surface draws attention | Choose the layer first, then the shadow. | book |
+| Flat styles still show depth | Lighter and darker surfaces, or a short solid shadow with no blur. | book |
+| Richer content in existing parts | Merge a table column that needs no sorting with a related one, use sections in a dropdown, or selectable cards for a central choice. | book, within decision 1 |
+| Finishing touches | Restyle what exists, then accent borders, background colour, gradients within about 30°, and low-contrast patterns or shapes. | book, within decision 5 |
 
 ## Conflicts and decisions
 
@@ -219,7 +266,7 @@ These six points were rejected in our review and are not rules here.
 | Point | From | Why it is excluded |
 | --- | --- | --- |
 | Light-source highlights on buttons and inset wells | book | A style choice, not a correctness rule, and dated in many current designs. |
-| Hand-tuning saturation and rotating hue in HSL to build shades | book | A workaround for HSL. OKLCH gives even lightness directly. |
+| Hand-tuning saturation in HSL to build shades | book | A workaround for HSL. OKLCH gives even lightness directly. Hue rotation stays for light hues such as yellow, which OKLCH leaves to you. |
 | De-emphasising text below the contrast floor | book | The book's own tertiary text example is about 4.4:1 on white, under the 4.5:1 it cites (our calculation). |
 | Turning a status value into a neutral badge | shadcn | It removes the positive or negative meaning. Add a status token instead. |
 | Faint input boundaries and focus rings | shadcn | The default theme measures about 1.26:1 for the input border and 2.59:1 for the focus ring at full strength (our calculation). |
