@@ -1,13 +1,13 @@
 ---
 name: designing-ui
-description: Designing user interfaces. Use when building or restyling a screen or component, creating or changing a theme or design tokens, or reviewing how a UI looks.
+description: Designing user interfaces. Use when building or restyling a screen or component, creating or changing a theme or design tokens, or reviewing a UI's look, UX, flow or usability.
 ---
 
 A screen reads well when three things hold. **Rank**: the eye lands on what matters most, because everything else was made quieter. **Group**: things that belong together sit closer to each other than to anything else. **Scale**: every size, gap, radius, shadow and colour is a step from the project's system, chosen by comparing neighbouring steps.
 
 Run the steps in order, or the route under them that fits the task. The reference sections are what the steps apply, and step 7 checks every one against [Precedence](#precedence).
 
-Five more bodies of reference live in sibling files. Read each when its condition holds:
+[`ux.md`](ux.md) holds the job walk that step 7 and the review and restyle routes run. Five more bodies of reference live in sibling files. Read each when its condition holds:
 
 - [`foundations.md`](foundations.md): the project has no tokens or scales yet, or the task creates or changes a theme, palette, type scale, spacing scale, radius or shadows.
 - [`images.md`](images.md): the screen places a photo, a user-uploaded image, a screenshot, a logo, or an icon larger than 24px.
@@ -18,18 +18,18 @@ Five more bodies of reference live in sibling files. Read each when its conditio
 ## Steps
 
 1. **Read the system.** Find, in the project's own files, its design docs such as `DESIGN.md`, tokens, spacing and type scales, component library, icon set, and whether it has a dark mode. Done when you can name the tokens, scale steps and components this work will use and whether the project owns the component source, or have found that none exist and read `foundations.md`.
-2. **Name the feature and the page type.** Design the one feature asked for, and include only what works now or what you are building now; navigation appears once there are real destinations for it. Then name the page type: an _app_ screen, or a _marketing or reading_ page. Done when the feature fits in one sentence, the page type is named, and every element on your list does something real.
-3. **Rank.** Before styling anything, give every piece of content and every action a rank: primary, secondary or tertiary. Done when each element has a rank and each view has exactly one primary action, or none.
+2. **Name the people, their jobs and the page type.** Design the one feature asked for, and include only what works now or what you are building now; navigation appears once there are real destinations for it. Name who uses the screen, the two to five jobs they come for, how often, and where they are when they do it, such as on a phone at the door or at a desk. Take these from what the user said, then the product docs, then the code: routes, roles, the data model and what gets logged. Mark anything else as assumed. Then name the page type: an _app_ screen, or a _marketing or reading_ page. Done when the feature fits in one sentence, each job has a source or is marked assumed, the page type is named, and every element on your list does something real.
+3. **Rank.** Before styling anything, give every piece of content and every action a rank: primary, secondary or tertiary. The most frequent job's content and action rank highest. Done when each element has a rank and each view has exactly one primary action, or none.
 4. **Structure without colour.** Lay the feature out with spacing, size and weight alone, at about 400px wide first and then wider. Done when the rank order is readable in greyscale, every gap is a scale step with more space around each group than inside it, and the layout holds with the worst content the screen can receive.
 5. **Colour, depth and decoration.** Add them through role tokens and component variants. Done when every colour at a use site is a role token or a variant, and every text and surface pair meets the contrast floor as measured by `scripts/contrast.py`, or is reported as a system finding.
 6. **States.** Design the empty, no-results, loading, failed, invalid and focused state of every region that depends on data or input. Done when each such region has every state that applies to it.
-7. **Look and correct.** Render the screen and look at it, narrow and wide, and in dark mode when the project has one. Where a control has helper text, check that it stays close to its label or control when the text wraps. When the visible gap looks too large, inspect the stack gap, margins, padding, line-height and row height, and close it without shrinking the control's target size. Then open each menu and overlay, tab to a control and submit an invalid value, and look at each result. Walk every rule in the reference sections against what you see and apply [Precedence](#precedence) to each failure. Done when each failure is fixed at the use site, reported as a system finding, or reported as an exception with the reason. When you cannot render the screen, say so in your report.
+7. **Look and correct.** Render the screen and look at it, narrow and wide, and in dark mode when the project has one. Walk each job from step 2 as [`ux.md`](ux.md) describes, and apply its proposals. Where a control has helper text, check that it stays close to its label or control when the text wraps. When the visible gap looks too large, inspect the stack gap, margins, padding, line-height and row height, and close it without shrinking the control's target size. Then open each menu and overlay, tab to a control and submit an invalid value, and look at each result. Walk every rule in the reference sections against what you see and apply [Precedence](#precedence) to each failure. Done when each failure is fixed at the use site, reported as a system finding, or reported as an exception with the reason. When you cannot render the screen, say so in your report.
 
 ## Routes
 
-- **Review an existing UI.** Run step 1, then the checks of step 7 across the whole screen. Reviewing is read-only: every failure becomes a finding, reported rule by rule, most visible first. A system finding appears once, however many screens it touches.
-- **Small edit to one component.** Run step 1, make the change, then run step 7 on that component and what sits beside it.
-- **Restyle an existing screen.** Keep its features and content. Run step 1, then step 3 on what is there, then step 4 only if the layout changes, then steps 5 to 7.
+- **Review an existing UI.** Run steps 1 and 2, walk each job as [`ux.md`](ux.md) describes, then run the checks of step 7 across the whole screen. Reviewing is read-only: every failure becomes a finding or a proposal, reported in the order `ux.md` gives, and within each group most visible first. A system finding appears once, however many screens it touches.
+- **Small edit to one component.** Run step 1, make the change, then run step 7 on that component and what sits beside it, without the job walk.
+- **Restyle an existing screen.** Keep its features and content. Run steps 1 and 2 and walk each job as `ux.md` describes; restructure and rethink proposals are reported, not applied. Then run step 3 on what is there, step 4 only if the layout changes, then steps 5 to 7.
 - **Create or change a theme.** Run step 1, follow `foundations.md`, then run step 7 on the screens that use the theme, in each mode.
 
 ## Precedence
@@ -38,6 +38,7 @@ Where a rule here and the project's system disagree, the kind of rule decides.
 
 - **Floors hold everywhere**: contrast, input boundaries, focus, target size, names, the states of a data region, and a status that keeps its meaning. A project's defaults never excuse a floor.
 - **Judgement applies at every use site**: Rank, Group and Text, wherever the system leaves the choice open.
+- **Structure follows the jobs**: which controls a screen has, where they sit and what they show come from the job walk in `ux.md`, never from the system. Its proposals follow the levels set there.
 - **Look belongs to the system**: shadows, surface layering, radius, density, weights, motion, border treatment, decoration and palette. Follow what the project has settled. These rules decide only where the system is silent, or when you are building a system.
 
 **Fix a failure where it starts.** A failure that starts at the use site is fixed there. A failure that starts in a token or a shared component is a _system finding_: report the token or component, the measured value, and what else it touches. Fix it when the task is about the system or the user approves. Until then, finish the task on the existing tokens.

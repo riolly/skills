@@ -29,6 +29,7 @@ Start with one feature, design it in low fidelity, build it early, and make each
 | Review what gets installed | Read added files, fix imports and icons to match the project, and never overwrite local changes without approval. | shadcn |
 | Start with a feature, not the shell | Design one working feature first, such as a search form. Add a shell block once a few features show what navigation is needed. | book, decided |
 | Short path for a small edit | For an edit to one component, read the system, make the change, then check that component and what sits beside it. | ours |
+| Walk the jobs | Name who uses a screen and the two to five jobs they come for, from the user, docs or code, marking guesses as assumed. Walk each job on the rendered screen and count taps, screens and things to remember. Check it against lenses: hidden state, model match, domain words, one concept in one place, effort, roles, true at every moment, cost of mistakes, way in and out. Label proposals polish, restructure or rethink; a restructure is applied only when building, and a rethink is never applied. Reports lead with jobs and structure, then floors, then polish. Decided 2 November 2026, after a review that polished a member page without finding its hidden status. | ours |
 
 ## Precedence
 
@@ -38,6 +39,7 @@ Decided 1 November 2026. Where a rule and a project's system disagree, the kind 
 | --- | --- | --- |
 | Floor | Contrast, input boundaries, focus, target size, names, the states of a data region, status meaning | Holds everywhere. A project's defaults never excuse it. |
 | Judgement | Rank, grouping and text | Applies at every use site where the system leaves the choice open. |
+| Structure | Which controls a screen has, where they sit and what they show | Comes from the job walk, never from the system. |
 | Look | Shadows, surface layering, radius, density, weights, motion, border treatment, decoration, palette | The project's system decides. These rules apply where it is silent, or when building a system. |
 
 A failure that starts at the use site is fixed there. A failure that starts in a token or shared component is a system finding: report it, and fix it when the task is about the system or the user approves.

@@ -4,7 +4,7 @@ Agent skills for Claude Code and Codex.
 
 | Skill | What it does |
 | --- | --- |
-| [`designing-ui`](skills/designing-ui/SKILL.md) | Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states, with a contrast checker and a branch for shadcn/ui projects. Loads when a task builds or restyles UI, creates a theme, or reviews how a UI looks. |
+| [`designing-ui`](skills/designing-ui/SKILL.md) | Steps and rules for designing a screen: the jobs people come for, rank, grouping, spacing, type, colour tokens, component composition and states, with a contrast checker and a branch for shadcn/ui projects. Loads when a task builds or restyles UI, creates a theme, or reviews a UI's look, UX, flow or usability. |
 | [`feature-walkthrough`](skills/feature-walkthrough/SKILL.md) | Record real browser workflows with spoken narration, matching captions, circles, rectangles and pointer gestures. Compare verified app versions in labelled chapters or side by side, and include terminal output. |
 | [`tailscale-machine`](skills/tailscale-machine/SKILL.md) | Add a machine to a tailnet and get it connecting directly, or work out why two machines are slow or relayed. Keeps your own addresses in a private local file. |
 
