@@ -23,7 +23,7 @@ Run the steps in order, or the route under them that fits the task. The referenc
 4. **Structure without colour.** Lay the feature out with spacing, size and weight alone, at about 400px wide first and then wider. Done when the rank order is readable in greyscale, every gap is a scale step with more space around each group than inside it, and the layout holds with the worst content the screen can receive.
 5. **Colour, depth and decoration.** Add them through role tokens and component variants. Done when every colour at a use site is a role token or a variant, and every text and surface pair meets the contrast floor as measured by `scripts/contrast.py`, or is reported as a system finding.
 6. **States.** Design the empty, no-results, loading, failed, invalid and focused state of every region that depends on data or input. Done when each such region has every state that applies to it.
-7. **Look and correct.** Render the screen and look at it, narrow and wide, and in dark mode when the project has one. Walk each job from step 2 as [`ux.md`](ux.md) describes, and apply its proposals. Where a control has helper text, check that it stays close to its label or control when the text wraps. When the visible gap looks too large, inspect the stack gap, margins, padding, line-height and row height, and close it without shrinking the control's target size. Then open each menu and overlay, tab to a control and submit an invalid value, and look at each result. Walk every rule in the reference sections against what you see and apply [Precedence](#precedence) to each failure. Done when each failure is fixed at the use site, reported as a system finding, or reported as an exception with the reason. When you cannot render the screen, say so in your report.
+7. **Look and correct.** Render the screen and look at it, narrow and wide, and in dark mode when the project has one. Walk each job from step 2 as [`ux.md`](ux.md) describes, and apply its proposals. Then make a removal pass: take out each hint, description, repeated value and decoration in turn, and keep it only when a job gets slower or a mistake gets likelier without it. Overlap, clipping, and content hidden under a fixed bar or the on-screen keyboard are failures. Where a control has helper text, check that it stays close to its label or control when the text wraps. When the visible gap looks too large, inspect the stack gap, margins, padding, line-height and row height, and close it without shrinking the control's target size. Then open each menu and overlay, tab to a control and submit an invalid value, and look at each result. Walk every rule in the reference sections against what you see and apply [Precedence](#precedence) to each failure. Done when each failure is fixed at the use site, reported as a system finding, or reported as an exception with the reason. When you cannot render the screen, say so in your report.
 
 ## Routes
 
@@ -42,6 +42,8 @@ Where a rule here and the project's system disagree, the kind of rule decides.
 - **Look belongs to the system**: shadows, surface layering, radius, density, weights, motion, border treatment, decoration and palette. Follow what the project has settled. These rules decide only where the system is silent, or when you are building a system.
 
 **Fix a failure where it starts.** A failure that starts at the use site is fixed there. A failure that starts in a token or a shared component is a _system finding_: report the token or component, the measured value, and what else it touches. Fix it when the task is about the system or the user approves. Until then, finish the task on the existing tokens.
+
+**Record what the user settles.** When the user overrules a design choice, offer to add it to the project's `DESIGN.md` as a rule, so later screens start from it.
 
 ## Rank
 
@@ -68,6 +70,7 @@ Where a rule here and the project's system disagree, the kind of rule decides.
 
 ## Text
 
+- **Copy stays when it prevents a mistake.** A description under a page title, a hint under a field or a caption under a chart stays when a person would otherwise get something wrong. Text that repeats what the screen already shows goes, such as a "Wrong number" tag beside a struck-through number, or a country code shown in the picker and again in the input. Labels stay short.
 - **Line-height follows line length and size**: about 1.5 for narrow text, up to 2 for wide text, about 1 for large headlines.
 - **Paragraphs run 45 to 75 characters**, a max-width of 20 to 35em, even inside a wider layout.
 - **Text beside text aligns on the baseline** when the font sizes differ. Icons, avatars and buttons beside text are centred.
@@ -103,10 +106,12 @@ Where a rule here and the project's system disagree, the kind of rule decides.
 - **Change a component's look in this order**: a built-in variant, then a new variant in its source, or in the library's theme when the source is packaged. Change a token's value only when the change belongs everywhere the token is used. Use sites carry layout classes only: width, margin and placement.
 - **Use the full structure**: the component's named parts, nested as its docs show.
 - **Forms use field parts.** A field wraps its label, control, description and error; a field group spaces complete fields; a fieldset with a legend groups related checkboxes or radios. Use the project's field components when available.
+- **Pace a long form by screens.** On a phone, group the questions into steps that each fit above the on-screen keyboard, and let the keyboard's Next key move from field to field. The next action sits in the page right after the last question, where the thumb already is.
 - **The component sizes and spaces its icons.** Icons come from the project's icon set.
 - **In components the project owns, compose in place of adding props.** A loading button is a disabled button with a spinner inside it.
 - **Feedback uses the project's components**: alert for callouts, badge for status, skeleton for loading.
 - **Pick the control by the choice.** A handful of visible options: toggle group. A few exclusive options: radio group, or selectable cards when the choice is central to the screen. A long or searchable list: select or combobox. An on/off setting: switch.
+- **Known controls come first.** Start from the project's component or the native element. On touch screens, a native select for a short list, such as a birthday's month and day, brings up the phone's own picker, and the right input type and `autocomplete` value bring up the right keyboard and autofill. A custom control replaces these only when the job walk counts it as better in taps, scrolls, words read or mistakes; say which in the report.
 - **Existing parts can hold richer content.** A table column that needs no sorting can merge with a related one, ranked inside the cell, and cells can hold an image or a status. A dropdown can take sections, columns and supporting text.
 - **A link styled as a button stays a link element.**
 - **After changing a shared component or token, look at its other uses.**

@@ -4,7 +4,7 @@ The steps make a screen read well. This file checks that it is the right screen 
 
 ## Walk each job
 
-Walk each job from step 2 on the rendered screen, at about 400px wide and then wider, with realistic data: the project's seed or fixture data, or the most realistic records you can make. Say which you used. Start where the person arrives, such as a nav item, a notification or a shared link, and end where they go next. Count the taps, the screens, and the things the person must remember from one screen to the next. Done when every job has a path and a count, or is reported as having no path.
+Walk each job from step 2 on the rendered screen by using it as the person would: press each control on the path, type with the on-screen keyboard open on a phone, open each picker and choose a value. Work at about 400px wide and then wider, with realistic data: the project's seed or fixture data, or the most realistic records you can make. Say which you used. Use every control on the path of the most frequent jobs; for the other jobs, reading the rendered screen is enough. Start where the person arrives, such as a nav item, a notification or a shared link, and end where they go next. Count the taps, the scrolls, the times the keyboard opens or changes, the words the person must read, the screens, and the things they must remember from one screen to the next. Done when every job has a path and a count, or is reported as having no path.
 
 ## Lenses
 
@@ -14,7 +14,7 @@ Check each job against each lens and record pass or fail with what you saw. Each
 - **Model match.** Controls take the shape of the data. Exclusive choices are one control; independent flags are separate switches; the same kind of setting uses the same control everywhere.
 - **Domain words.** Labels, options and messages use the words the people use, never field, enum or table names such as `is_active` or `ROLE_ADMIN`.
 - **One concept, one place.** Controls that serve the same job, such as the filters of a list or the settings of one thing, live together.
-- **Effort.** The most frequent job's control comes first, on phones too. The app fills in what it knows: defaults, prefilled values, the last choice. Work done on many records at once has a bulk action.
+- **Effort.** The most frequent job's control comes first, on phones too. The app fills in what it knows: defaults, prefilled values, the last choice. Work done on many records at once has a bulk action. For each control on the most frequent job's path, picture the plainest version that would do, such as the native control, one field fewer or one step fewer, and count both; the richer version stays only when its count wins.
 - **Roles.** Each role sees the controls it can use. A control the person cannot use is hidden, or shown disabled with the reason when knowing it exists helps them.
 - **True at every moment.** What the screen claims stays correct across time: first use, the day of the event, after a period ends, a month with nothing in it. Step 6 owns the loading and empty states; this lens checks what the screen says.
 - **Cost of mistakes.** A reversible action takes effect at once and offers undo. An irreversible one asks for confirmation and names what will be lost.

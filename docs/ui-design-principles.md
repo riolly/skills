@@ -30,6 +30,9 @@ Start with one feature, design it in low fidelity, build it early, and make each
 | Start with a feature, not the shell | Design one working feature first, such as a search form. Add a shell block once a few features show what navigation is needed. | book, decided |
 | Short path for a small edit | For an edit to one component, read the system, make the change, then check that component and what sits beside it. | ours |
 | Walk the jobs | Name who uses a screen and the two to five jobs they come for, from the user, docs or code, marking guesses as assumed. Walk each job on the rendered screen and count taps, screens and things to remember. Check it against lenses: hidden state, model match, domain words, one concept in one place, effort, roles, true at every moment, cost of mistakes, way in and out. Label proposals polish, restructure or rethink; a restructure is applied only when building, and a rethink is never applied. Reports lead with jobs and structure, then floors, then polish. Decided 2 November 2026, after a review that polished a member page without finding its hidden status. | ours |
+| Use it, don't just look | The walk presses each control on the path, types with the phone keyboard open and opens each picker, and also counts scrolls, keyboard changes and words read. Every control on the most frequent jobs is used; the rest are read from the screen. Each of those controls is compared with its plainest version, which stays unless the richer one counts better. Decided 3 November 2026, after a kiosk run built a 31-button day grid that looked designed and was slow to use. | ours |
+| Removal pass | After the walk, take out each hint, description, repeated value and decoration in turn, and keep it only when a job gets slower or a mistake likelier without it. Overlap, clipping and content under a fixed bar or the keyboard are failures. Decided 3 November 2026. | ours |
+| Record what the user settles | When the user overrules a design choice, offer to add it to the project's `DESIGN.md`, so later screens start from it. Taste is found in review; this keeps it. Decided 3 November 2026. | ours |
 
 ## Precedence
 
@@ -70,6 +73,7 @@ Make importance visible by weakening what matters less before enlarging what mat
 | No weights under 400 for interface text | De-emphasise with colour or size instead. | book |
 | Two weights | One normal and one emphasis weight, chosen per typeface and kept. At 500, emphasis also needs colour or size. | both, as proposed |
 | Solid red only when confirming | Delete is a solid destructive button inside its confirmation dialog and a red tint everywhere else. | both, as proposed |
+| Copy stays when it prevents a mistake | A page description, field hint or chart caption stays only when a person would otherwise get something wrong. Text repeating what the screen shows goes. Decided 3 November 2026, from YoungPro's review house rules. | ours |
 
 ## Layout and spacing
 
@@ -169,6 +173,8 @@ Components share one composable shape, and their look changes through variants, 
 | Don't abstract what always differs | Data tables are built per case from a table primitive and a headless library, not from one do-everything component. | shadcn |
 | Forms use field parts | A field wraps label, control, description and error. A field group spaces fields. A fieldset with a legend groups related checkboxes or radios. | shadcn |
 | Pick the control by the choice | A handful of visible options: toggle group. Few exclusive options: radio group. Long or searchable list: select or combobox. An on/off setting: switch. | shadcn |
+| Known controls come first | Start from the project's component or the native element. On touch, a native select for a short list such as a birthday's month and day, and the input type and `autocomplete` value that bring up the right keyboard. A custom control replaces them only when the walk counts it better. Decided 3 November 2026. | ours |
+| Pace a long form by screens | On a phone, steps that each fit above the keyboard, the keyboard's Next key moving between fields, and the next action in the page right after the last question. Decided 3 November 2026. | ours |
 | Semantics still matter | A link styled as a button stays a link element. | shadcn |
 | Existing parts first, then a variant | Compose from components the project already has. When they fall short, add a variant or a new component to the project instead of a one-off override. | both, decided |
 | Check the other uses of a shared part | After changing a shared component or token, look at the other places that use it. | ours |
