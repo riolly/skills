@@ -52,25 +52,26 @@ npx skills remove designing-ui
 
 ### 2. Claude Code plugin
 
-In your shell:
+Each skill is its own plugin, so you can install only the ones you use. In your shell:
 
 ```bash
 claude plugin marketplace add riolly/skills
-claude plugin install riolly@riolly-skills
+claude plugin install feature-walkthrough@riolly-skills
+claude plugin install tailscale-machine@riolly-skills
 ```
 
 Or inside a Claude Code session:
 
 ```
 /plugin marketplace add riolly/skills
-/plugin install riolly@riolly-skills
+/plugin install tailscale-machine@riolly-skills
 ```
 
-Installed this way, the skills are named `riolly:designing-ui` and `riolly:feature-walkthrough`. Update later with:
+Installed this way, a skill is named after its plugin, for example `tailscale-machine:tailscale-machine`. Update later with:
 
 ```bash
 claude plugin marketplace update riolly-skills
-claude plugin update riolly@riolly-skills
+claude plugin update tailscale-machine@riolly-skills
 ```
 
 ### 3. Manual copy (Claude Code)
@@ -87,9 +88,9 @@ Copy into a project's `.claude/skills/` instead to install it for that project o
 
 ## Use
 
-Claude Code loads the skill on its own when a task involves UI. To call it directly, type `/designing-ui`, or `/riolly:designing-ui` when installed as a plugin.
+Claude Code loads the skill on its own when a task involves UI. To call it directly, type `/designing-ui`, or `/designing-ui:designing-ui` when installed as a plugin.
 
-For a feature report, ask for a short narrated walkthrough or invoke `/feature-walkthrough` in Claude Code, `/riolly:feature-walkthrough` through the plugin, or `$feature-walkthrough` in Codex. It explains what changed, demonstrates the actual result, and gives you steps to try.
+For a feature report, ask for a short narrated walkthrough or invoke `/feature-walkthrough` in Claude Code, `/feature-walkthrough:feature-walkthrough` through the plugin, or `$feature-walkthrough` in Codex. It explains what changed, demonstrates the actual result, and gives you steps to try.
 
 Existing recording preferences, including `AGENTS.md` instructions, take precedence. Otherwise, the skill gives written steps for changes that are obvious to check and asks once about a recording for harder ones. In Codex, the written result arrives as a progress update before recording, and the final response includes the verified video or a recording limitation. A recording subagent is preferred when available and allowed; T3 uses its shared preview recorder with or without subagents. Delivery after the turn ends requires a client that explicitly supports automatic resumption.
 
