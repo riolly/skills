@@ -9,4 +9,4 @@ Done when the content is driven by the three controls, holds its measure, and st
 - **Prose may size itself from its container**, so the same content fits a chat bubble and an article. This is the one place interface text leaves the fixed scale.
 - **Measure**: 45 to 75 characters a line, set as a max-width on the wrapper. Leading rises with line length, up to about 2.
 - **Streaming-safe**: each block carries its own spacing above it and is styled from its own selector, so an appended block leaves every earlier block unchanged. Layout rules that depend on what follows, such as last-child and has(), fail this.
-- **Alignment**: left-aligned by default. Justified text is hyphenated. Titles use balanced wrapping.
+- **Alignment**: follows the reading direction by default. Justified text is hyphenated. Titles use balanced wrapping.
