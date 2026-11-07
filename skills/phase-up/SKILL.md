@@ -15,12 +15,16 @@ A project's phase is set by what a mistake costs. This skill moves a project thr
 
 Day 0 is part of the v0.x gate: a project that skipped it gets those items first.
 
+The phases: **v0.0.x**, a prototype that asks "does anyone want this?"; **v0.x**, a product people rely on, with cheap checks and cheap undo; **v1**, a platform that runs without its owner. A project moves up at an event, never a feeling.
+
+The kinds: an **app** has accounts, saved data or writes; a **content site** is mostly read (marketing, docs, blog); a **toy** is for fun or an experiment. Anything else, such as a CLI, library, native app or browser extension, is **other**.
+
 ## 1. Place the project
 
 Read the project's `CLAUDE.md` (its `Phase:` line and stack), the scripts in `package.json`, `.github/workflows/`, the deploy setup and how the app reaches its database.
 
 Done when you can state, with evidence, three things:
-- **Kind:** app, content site or toy (the kinds in the global CLAUDE.md). A toy has no gates; say so and stop. A content site's Day 0 is only the deploy item.
+- **Kind:** app, content site, toy or other. A toy has no gates; say so and stop. A content site's Day 0 is only the deploy item. For other, apply only D1, D3, D4, P1 and P2, and only where the project has credentials or data.
 - **Current phase:** from the `Phase:` line, or judged from real users, real data and CI if there is none.
 - **Target gate:** the next one up. Tell the user which gate you're auditing.
 
@@ -46,7 +50,7 @@ Show the audit as a table, then a plan of PRs in this order:
 3. **Checks:** CI, migration checks, smoke tests.
 4. **Docs:** `docs/workflow.md`, the `CLAUDE.md` rules and `Phase:` line.
 
-Each PR has one reason to revert and stays around 400 changed lines. Steps only the user can do (dashboards, billing, GitHub settings, secrets) go to the `wizard` skill as a list, not into a PR.
+Each PR has one reason to revert and stays around 400 changed lines, not counting generated files (migration snapshots, lockfiles). Steps only the user can do (dashboards, billing, GitHub settings, secrets) go to the `wizard` skill as a list, not into a PR.
 
 Wait for the user to confirm the plan. Done when they approve it or change it.
 
@@ -56,6 +60,6 @@ Build one PR at a time, using [references/youngpro.md](references/youngpro.md) f
 
 Ask before creating or changing cloud resources (databases, branches, projects, domains) or anything that touches production. Production data is read-only for this skill.
 
-The last PR sets the `Phase:` line in the project's `CLAUDE.md`, for example `Phase: v0.x since 2026-11-01`, and adds any rule an agent must follow from now on.
+The last PR sets the `Phase:` line in the project's `CLAUDE.md` and adds any rule an agent must follow from now on. After the Day 0 gate the project is still a prototype: `Phase: v0.0.x, Day 0 done 2026-11-01`. After the v0.x gate: `Phase: v0.x since 2026-11-01`.
 
 Done when every item in scope is present or the user has deferred it by name, and the `Phase:` line is set.
