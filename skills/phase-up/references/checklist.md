@@ -7,7 +7,7 @@ Items are stack-agnostic. Each has a **check** (how to prove it) and the **cost*
 Before the first real user. A content site needs only D5.
 
 **D1. Production credentials never on disk.** Production is reached through one deliberate command that fetches credentials when it runs (for example from the database provider's CLI), never from an `.env*` file.
-- Check: `git ls-files | rg '\.env'` lists only an example file. No `.env*` file in the checkout or its worktrees holds a production host. Any tool that creates worktrees and copies ignored files is accounted for.
+- Check: `git ls-files | rg '\.env'` lists only an example file. No `.env*` file in the main checkout or any worktree holds a production host: compare their database hosts with production's, without printing secrets. A dev command that rewrites the env file fixes only the checkouts where it ran. Any hook that copies ignored files into new worktrees is accounted for.
 - Cost: YoungPro went live on 24 Oct with a production `.env.local`, and every new worktree copied it. For a week, a plain `dev` or `db:migrate` could have run against real members.
 
 **D2. One command, one isolated local stack.** In a fresh worktree, one command installs dependencies and starts the app with its own database, migrations, mock data and test accounts, and writes its env file with local values every time.
@@ -18,7 +18,7 @@ Before the first real user. A content site needs only D5.
 - Check: point each one at a fake production URL and watch it refuse.
 - Cost: a seed script that "resets all data" is one wrong env var away from wiping production.
 
-**D4. A project CLAUDE.md that earns its load.** Commands, the product principle, the rules that are expensive to break (id generation, idempotent writes, auth on every server entry point), and a `Phase:` line.
+**D4. A project CLAUDE.md that earns its load.** Commands, the product principle, and the rules that are expensive to break (id generation, idempotent writes, auth on every server entry point). The `Phase:` line is P9.
 - Check: each rule names something an agent could break without noticing. Lookups the repo already answers (scripts, directory layout) stay out.
 
 **D5. Preview, deploy, roll back.** Every push gets a preview deploy, a merge deploys production, and the rollback is written down (on Vercel: promote the previous deployment). The rollback note says that it rolls back code, not the schema.
