@@ -7,9 +7,29 @@
   },
   "plugins": [
     {
-      "name": "riolly",
-      "source": ".",
-      "description": "Agent skills from riolly/skills. Includes designing-ui for UI design, feature-walkthrough for narrated, annotated video demos, and tailscale-machine for adding machines to a tailnet.",
+      "name": "designing-ui",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/designing-ui"],
+      "description": "Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states.",
+      "homepage": "https://github.com/riolly/skills",
+      "repository": "https://github.com/riolly/skills"
+    },
+    {
+      "name": "feature-walkthrough",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/feature-walkthrough"],
+      "description": "Record narrated, captioned walkthroughs of real browser workflows, and compare app versions.",
+      "homepage": "https://github.com/riolly/skills",
+      "repository": "https://github.com/riolly/skills"
+    },
+    {
+      "name": "tailscale-machine",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/tailscale-machine"],
+      "description": "Add a machine to a tailnet and get it connecting directly, or work out why two machines are slow or relayed.",
       "homepage": "https://github.com/riolly/skills",
       "repository": "https://github.com/riolly/skills"
     }
