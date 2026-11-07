@@ -1,6 +1,6 @@
 # YoungPro, the benchmark
 
-YoungPro (`riolly/youngpro-platform`, private) went from prototype to v0.x between 24 Oct and 2 Nov 2026. It uses TanStack Start, Drizzle, Neon, Better Auth, bun and Vercel, so on that stack its files are close to drop-in. On another stack, take the decisions and leave the code.
+YoungPro (`riolly/youngpro-platform`, private) went from prototype to v0.x in its first weeks with real users. It uses TanStack Start, Drizzle, Neon, Better Auth, bun and Vercel, so on that stack its files are close to drop-in. On another stack, take the decisions and leave the code.
 
 Read a file at the pinned commit, which never changes:
 
@@ -12,7 +12,7 @@ Item numbers match [checklist.md](checklist.md).
 
 | Item | Files | Decisions worth keeping |
 |---|---|---|
-| D1 | `package.json` (`db:prod:migrate`) | The production URL comes from `neon connection-string main` inside the one command that needs it. A git hook (`hook.copy-env` in `~/.gitconfig`) copies ignored `.env*` files from the main checkout into every new worktree. On 7 Nov the main checkout still held its 24 Oct production `.env.local`, because `bun run dev` rewrites the file only where it runs, so every new worktree started with production until its first `dev`. Check the files on disk, not just the code. |
+| D1 | `package.json` (`db:prod:migrate`) | The production URL comes from `neon connection-string main` inside the one command that needs it. A git hook (`hook.copy-env` in `~/.gitconfig`) copies ignored `.env*` files from the main checkout into every new worktree. `bun run dev` rewrites `.env.local` only where it runs, so a main checkout that hasn't run it since a production file was there keeps that file, and the hook hands it to every new worktree. Check the files on disk, not just the code. |
 | D2 | `scripts/dev.ts`, `scripts/lib.ts` | PGlite in `./.pglite`, one per worktree. Each Vite port is paired with a database port, so worktrees run side by side. `.env.local` is rewritten on every start. Mock data is seeded once, while data that goes stale (today's meeting, kiosk code) refreshes on every start. Corrupt data moves to `.pglite.broken` and rebuilds; any other failure leaves the data alone. `dev:fresh` deletes the database. |
 | D3 | `drizzle.config.ts`, `src/server/test-database.ts`, `scripts/mock-seed.ts`, `scripts/dev-seed.ts`, `scripts/share.ts` | Two allow-lists, not one: `isTestDatabase` (local and staging: test logins and mock data) and `isSafeToMigrate` (those plus `prerelease`, which holds real data). Neon endpoints are hard-coded, so a recreated branch is refused until the file is updated. `ALLOW_PROD_DB` is the only override, and only `db:prod:migrate` sets it. |
 | D4 | `CLAUDE.md` | Its rules each name a silent breakage: server-only imports leaking into the client, kiosk writes on fixed URLs so queued requests replay after a redeploy, idempotent writes with device-made ids, middleware on every server function. Plus the product principle ("avoid extra work for leaders"). |
@@ -33,4 +33,4 @@ To test this skill, audit YoungPro at two commits and compare with the expected 
 - **Before** `ab76c45b1749a462444ef1e23c1f5e2d141913b2` (after PR #9, before the workflow PRs #11 and #12). Expected: D1 missing (the `dev` script reads `.env.local`, a production copy), D2 partial (`db:local` and `dev:local` are two commands and the env file isn't rewritten), D3 partial (no guard in `drizzle.config.ts`), D4 present, D5 partial (rollback not written down), D6 partial (`e2e` needs the stack started by hand), P3 present or partial (whether previews use staging is set in Vercel, not the repo), and every other P item missing.
 - **After** `44927c89a03ce6e7459b156b0563061e0602249a`. Expected: D2 to D6 and P1 to P6 present, P7 and P8 missing, and P9 missing (the `CLAUDE.md` has no `Phase:` line). D1 is present in the code but depends on the files on disk: see D1 above.
 
-A good run gets every status right, finds P7 and P8 as the remaining gaps, and starts the "before" plan with D1 to D3. A run on 7 Nov did all three, found that the e2e scripts delete members with no guard, and listed removing production `.env*` files for the user.
+A good run gets every status right, finds P7 and P8 as the remaining gaps, and starts the "before" plan with D1 to D3. It also checks test scripts for unguarded deletes and the env files on disk.

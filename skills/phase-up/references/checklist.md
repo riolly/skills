@@ -8,7 +8,7 @@ Before the first real user. A content site needs only D5.
 
 **D1. Production credentials never on disk.** Production is reached through one deliberate command that fetches credentials when it runs (for example from the database provider's CLI), never from an `.env*` file.
 - Check: `git ls-files | rg '\.env'` lists only an example file. No `.env*` file in the main checkout or any worktree holds a production host: compare their database hosts with production's, without printing secrets. A dev command that rewrites the env file fixes only the checkouts where it ran. Any hook that copies ignored files into new worktrees is accounted for.
-- Cost: YoungPro went live on 24 Oct with a production `.env.local`, and every new worktree copied it. For a week, a plain `dev` or `db:migrate` could have run against real members.
+- Cost: a production `.env.local` left in the main checkout gets copied into new worktrees, where a plain `dev` or migrate reaches real data.
 
 **D2. One command, one isolated local stack.** In a fresh worktree, one command installs dependencies and starts the app with its own database, migrations, mock data and test accounts, and writes its env file with local values every time.
 - Check: run it in a fresh worktree with nothing copied in. It ends with a URL you can sign in to.
