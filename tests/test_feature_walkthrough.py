@@ -190,6 +190,54 @@ class WalkthroughIntegration(unittest.TestCase):
         self.assertEqual(cleared, {"cleared": True})
         self.assertFalse(self.shows(after, self.orange, sample_step=3), "clear() left an outline")
 
+    def test_still_labels_avoid_each_other_and_hide_when_their_element_leaves(self):
+        from playwright.sync_api import sync_playwright
+        url = self.page('<style>body{margin:0}.tile{position:absolute;top:200px;width:80px;height:60px;background:#ccc}</style>'
+                        '<div class="tile" id="a" style="left:40px"></div><div class="tile" id="b" style="left:132px"></div>')
+        annotate = (SCRIPTS / "annotate.js").read_text(encoding="utf-8").strip()
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={"width": 640, "height": 400})
+            page.goto(url)
+            page.evaluate(annotate)
+            page.evaluate("() => __walkthrough.still([{selector:'#a', label:'First new tile'},"
+                          "{selector:'#b', label:'Second new tile'}])")
+            overlay = "document.querySelector('[data-walkthrough-overlay]').shadowRoot"
+            boxes = page.evaluate(f"() => [...{overlay}.querySelectorAll('div')]"
+                                  ".filter(d => d.style.visibility !== 'hidden').map(d => d.getBoundingClientRect().toJSON())")
+            page.evaluate("() => document.querySelector('#b').remove()")
+            # Headless Chromium draws frames only on demand, so wait for two rather than for time.
+            page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
+            # The first rect belongs to the video mark, which is hidden by its own svg.
+            hidden = page.evaluate(f"() => [...{overlay}.querySelectorAll('rect')].slice(1).map(r => r.style.visibility)")
+            browser.close()
+        first, second = boxes
+        overlap = (first["left"] < second["right"] and second["left"] < first["right"]
+                   and first["top"] < second["bottom"] and second["top"] < first["bottom"])
+        self.assertFalse(overlap, f"labels overlap: {boxes}")
+        self.assertEqual(hidden, ["visible", "hidden"])
+
+    def test_screenshot_steps_save_marked_images_without_a_video(self):
+        shot = self.work / "shots/after.png"
+        report = recorder.record({**self.scenario, "steps": [
+            {"action": "click", "selector": "#apply", "hold": 0},
+            {"action": "screenshot", "path": str(shot), "marks": [{"selector": "#result", "label": "New message"}]},
+            {"action": "screenshot", "path": str(self.work / "plain.png")}]})
+        self.assertIsNone(report["path"])
+        self.assertEqual(report["screenshots"], [str(shot), str(self.work / "plain.png")])
+        self.assertTrue(self.shows(shot, self.orange, sample_step=3), "the screenshot has no mark")
+        self.assertFalse(self.shows(self.work / "plain.png", self.orange, sample_step=3), "a mark leaked into the next shot")
+        self.assertEqual(list(self.work.glob("**/*.webm")), [])
+
+    def test_failed_screenshot_scenario_saves_no_images(self):
+        scenario = self.work / "scenario.json"
+        scenario.write_text(json.dumps({**self.scenario, "steps": [
+            {"action": "screenshot", "path": str(self.work / "before.png")},
+            {"action": "screenshot", "path": str(self.work / "after.png"), "marks": [{"selector": "#missing"}]}]}))
+        result = self.cli("record_browser.py", scenario)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(list(self.work.glob("*.png")), [])
+
     def test_results_slower_than_five_seconds_are_awaited(self):
         url = self.page('<button id="apply" onclick="setTimeout(() => result.textContent = \'Saved\', 6000)">'
                         'Apply</button><p id="result">Waiting</p>')

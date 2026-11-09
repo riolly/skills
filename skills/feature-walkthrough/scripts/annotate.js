@@ -120,20 +120,44 @@
     return { ...last, bounds: { x:initial.x,y:initial.y,width:initial.width,height:initial.height } };
   };
   // Still marks: several at once, fully drawn, kept until clear(). For screenshots, not video.
-  let stills = [];
+  let stills = [], stillFrame = null;
   const placeStills = () => {
+    const placed = [];
     for (const { target, outline, caption, padding } of stills) {
+      // A re-render replaces the element; hide its mark rather than draw it at a stale spot.
+      const shown = target.isConnected;
+      outline.style.visibility = shown ? 'visible' : 'hidden';
+      if (caption) caption.style.visibility = shown ? 'visible' : 'hidden';
+      if (!shown) continue;
       const r = target.getBoundingClientRect();
       const x = r.left - padding, y = r.top - padding, w = r.width + padding * 2, h = r.height + padding * 2;
       if (outline.tagName === 'ellipse') attr(outline, { cx: x + w/2, cy: y + h/2, rx: w/2 + 4, ry: h/2 + 4 });
       else attr(outline, { x, y, width: w, height: h });
-      if (caption) placeLabel(caption, x, y, h);
+      if (!caption) continue;
+      placeLabel(caption, x, y, h);
+      // Neighbouring marks would stack their labels; push this one below any it overlaps.
+      const left = parseFloat(caption.style.left), width = caption.offsetWidth, height = caption.offsetHeight;
+      let top = parseFloat(caption.style.top);
+      for (let moved = true; moved;) {
+        moved = false;
+        for (const p of placed) {
+          if (left < p.right && left + width > p.left && top < p.bottom && top + height > p.top) {
+            top = p.bottom + 6; moved = true;
+          }
+        }
+      }
+      caption.style.top = `${top}px`;
+      placed.push({ left, right: left + width, top, bottom: top + height });
     }
     stillSvg.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
   };
+  // Follow layout shifts, such as an image that loads after the marks are drawn.
+  const followStills = () => { placeStills(); stillFrame = requestAnimationFrame(followStills); };
   const clearStills = () => {
     for (const { outline, caption } of stills) { outline.remove(); caption?.remove(); }
     stills = [];
+    if (stillFrame !== null) cancelAnimationFrame(stillFrame);
+    stillFrame = null;
     removeEventListener('scroll', placeStills, true);
     removeEventListener('resize', placeStills);
   };
@@ -154,7 +178,7 @@
         { fill:'none', stroke: color, 'stroke-width': 4, ...(shape === 'rectangle' ? { rx: 8 } : {}) }),
       caption: text ? Object.assign(makeLabel(), { textContent: text }) : null,
     }));
-    placeStills();
+    followStills();
     addEventListener('scroll', placeStills, true);
     addEventListener('resize', placeStills);
     return { stills: resolved.map(({ selector, shape, initial }) =>

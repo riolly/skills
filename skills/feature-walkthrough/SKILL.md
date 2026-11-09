@@ -1,39 +1,49 @@
 ---
 name: feature-walkthrough
-description: Record narrated, captioned feature walkthroughs, compare app versions across browser tabs, add circles, rectangles and animated pointer gestures, and include terminal output. Use when the user asks for a video demo, before-and-after comparison, or walkthrough, and whenever you take before-and-after screenshots of a UI change, to mark what changed. Also use while planning a user-visible web change, to decide whether a recording is worth offering; most changes need none.
+description: Pick and make the proof for a user-visible change. That is a marked screenshot, a marked before-and-after pair, or a captioned or narrated video, with browser-tab comparisons, pointer gestures and terminal output. Use while planning or finishing a user-visible change, to pick the proof (most changes need a screenshot or nothing), and when the user asks for screenshots, a before-and-after comparison, a video demo or a walkthrough.
 ---
 
 # Feature walkthrough
 
-Create a short video of the actual workflow, with a small set of steps the viewer can try. Deliver an MP4 with readable app text, a visible title, compact captions, and spoken narration by default. Use silent output when the user requests it. Aim for 30–90 seconds per workflow; use shorter clips for simple changes. Explain what changed, why it helps, what to click, and what the viewer should see. Support claims with the demonstrated behavior.
+Show a user-visible change with the cheapest proof that lets the reader check it. Most changes need a marked screenshot or nothing; few need a video.
+
+## Choose the proof
+
+Choose during planning, because a before-and-after pair needs its "before" shot taken before you edit. Change the choice if the work turns up a flow worth showing. When the user asks for a specific format, make that one. Honor the user's current and earlier preferences, including applicable `AGENTS.md` and `CLAUDE.md` instructions.
+
+| What changed | Proof | Ask first? |
+| --- | --- | --- |
+| Nothing visible, such as a backend change, a refactor or config | A test or command output, as text. This skill adds nothing. | No |
+| Output of a CLI or terminal command | The output, pasted as text. Record the terminal only when timing or interaction is the point. | No |
+| New UI with no earlier version, such as a screen, a dialog or a control | One marked screenshot per screen | No |
+| Changed UI that a still image shows, such as layout, style, copy, or an added or moved element | A marked before-and-after pair | No |
+| A behavior across several steps or states, or a result easier to see than to describe | A short silent clip with captions | Ask once |
+| A long flow, an animation or timing, or several tabs or apps | A video. Make it a comparison video when the old behavior matters. | Ask once |
+
+- Take screenshots without asking; they cost seconds. A responsive change gets a shot for each width that changes, such as 390 and 1280 pixels. A theme change gets a shot for each theme. Otherwise take one shot per screen.
+- Ask about a video once, with the other planning questions. Name what it would show, and offer written steps with screenshots as the alternative. Use a question tool permitted in the current mode. With an asynchronous question tool, continue implementation and verification while waiting. When nobody can answer, as in a non-interactive run, skip the video unless one was already requested.
+- The answer holds for the whole task. After a decline, do not ask again or record anyway; the user can still request a video later.
+- Narrate a video meant for a client, a release note, or anyone outside development. Keep a video that proves a PR silent, with captions. The user's choice overrides both.
+
+Every proof ends with the written steps to try and the expected result. Continue with the section for the chosen format.
+
+## Screenshots
+
+1. For a pair, get the baseline first. Take the "before" shot before editing, or from a deployment or clean checkout at the base revision running on its own port, as in [advanced walkthroughs](references/advanced.md). Note the revision and URL of each shot. If no baseline is available, say so and take the "after" shot alone.
+2. Use the same viewport, route, sample data and scroll position for both shots of a pair. Scroll the change into view.
+3. In T3, evaluate the trimmed text of `scripts/annotate.js` in the page with `preview_evaluate`, as described in [advanced walkthroughs](references/advanced.md). Call `__walkthrough.still([{ selector, label }, ...])` with one item per change, up to 12. A short label such as "New: follow-up tiles" helps when the change is small. On a "before" shot, mark the element the change replaces, or the spot where it will appear. Take the screenshot with `preview_snapshot({ save: true })`, then call `__walkthrough.destroy()`.
+4. Without T3, add `screenshot` steps to a `scripts/record_browser.py` scenario and leave out the video output, as described in [portable recording](references/portable.md). Find the script as in [Locate the installed helpers](#locate-the-installed-helpers).
+5. Open each saved image. Every rectangle surrounds its change, and no label covers a change or another label.
+
+Save the images under the project's ignored `artifacts/walkthrough/` directory, named by version and screen, such as `before-meetings.png` and `after-meetings.png`. In a client that renders local images, show them with `![After: meetings](/absolute/path/after-meetings.png)`; otherwise give the absolute paths. GitHub accepts PR images only through a browser upload, so in a PR body add a `Before merge` step that names the files to drag into the description. Keep the images out of source control unless the project asks for them.
+
+Stop reading here unless a video was also chosen.
+
+## Make the video
+
+Create a short video of the actual workflow, with a small set of steps the viewer can try. Deliver an MP4 with readable app text, a visible title and compact captions, plus spoken narration when the choice above calls for it. Aim for 30–90 seconds per workflow; use shorter clips for simple changes. Explain what changed, why it helps, what to click, and what the viewer should see. Support claims with the demonstrated behavior.
 
 For every narrated recording, read [spoken walkthroughs](references/narration.md) before planning scene lengths. A local Piper voice reads the same timed text used for captions without an API key. Captions remain useful with sound muted. If voice setup fails, report the failure explicitly with the available captioned clip.
-
-## Before-and-after screenshots
-
-A screenshot pair needs no recording. Mark the change on both shots, so the reader finds it at a glance:
-
-1. Open the version in the browser, scroll the change into view, and evaluate the trimmed text of `scripts/annotate.js` in the page, as described in [advanced walkthroughs](references/advanced.md).
-2. Call `__walkthrough.still([{ selector, label }, ...])` with one item per change, up to 12. A short label such as "New: follow-up tiles" helps when the change is small. On the before shot, mark the element the change replaces, or the spot where it will appear.
-3. Take the screenshot (`preview_snapshot({ save: true })` in T3, `page.screenshot()` in Playwright), then call `__walkthrough.destroy()`.
-
-Check the saved image: every rectangle surrounds its change, and no label covers it. Stop reading here unless a video is also wanted.
-
-## Decide whether to record
-
-A recording costs minutes, and most changes do not need one. Decide early when possible, and revise the choice if the work reveals a flow worth demonstrating.
-
-Honor the user's current and earlier recording preferences, including applicable `AGENTS.md` instructions. Record without asking when a video is already requested, or the user invoked this skill to create one. When there is no existing preference, judge how hard the change is to check by hand:
-
-| Checking the change | What to do |
-| --- | --- |
-| Obvious. A few written steps cover it, such as a new button, a text or style change, or one form field. | Do not record and do not ask. Finish with the written steps and the expected result. |
-| Medium. Several steps or states, or a result that is easier to see than to describe. | Ask once, with the other planning questions. Offer written steps, the recommended choice, or a short recording. |
-| Hard. A long flow, timing or animation, a before-and-after comparison, or several apps or tabs. | Ask once, with the other planning questions. Offer a recording, the recommended choice, or written steps. |
-
-Name what the recording would show, and use a question tool permitted in the current mode when available. Ask during planning when possible; with an asynchronous question tool, continue implementation and verification while waiting. When nobody can answer, as in a non-interactive run, use written steps unless a recording was already requested.
-
-The answer holds for the whole task. After a decline, do not ask again or record anyway; the user can still request a video later. Stop reading here when the answer is no.
 
 ## Keep the answer ahead of the video
 
@@ -100,7 +110,7 @@ uv run "$WALKTHROUGH_SKILL_DIR"/scripts/finish_video.py \
 ]
 ```
 
-3. Run `scripts/narrate_video.py` with `--captions cues.json` and `--title "A concise walkthrough title"` on the edited clip, as shown in the narration guide. For a composition that already has source titles, preserve those headers and omit `--title`. This adds the caption footer once. For explicitly silent output, pass `--captions` and `--title` to `finish_video.py` instead.
+3. For narrated output, run `scripts/narrate_video.py` with `--captions cues.json` and `--title "A concise walkthrough title"` on the edited clip, as shown in the narration guide. For a composition that already has source titles, preserve those headers and omit `--title`. This adds the caption footer once. For silent output, pass `--captions` and `--title` to `finish_video.py` instead.
 4. Require the final export report to confirm portable MP4 and complete decoding, plus audible audio for narrated output. Inspect extracted frames at every key result and cue boundary. Titles must remain visible and captions must fit below the app. Check that app text stays readable at normal playback size.
 5. Open the final MP4 in the available browser/player and verify playback advances, seeking works, and sound is present. Serve that same file with a download link, save a copy, and verify the copy plays. Report any unavailable playback or listening check. Deliver only after these checks pass or the remaining limitation is stated.
 
@@ -114,6 +124,6 @@ Use an available browser integration with native video recording if it supports 
 
 Save the final clip under the project's ignored `artifacts/walkthrough/` directory or another durable local artifact directory. In a client that supports local video embeds, use `![Feature walkthrough](/absolute/path/feature.mp4)`. In a terminal client such as Claude Code CLI, give the absolute path and a link supported by that client; do not claim an inline player exists. Keep the text to what changed, the version or URL demonstrated, and a few concrete actions with expected results. Mention any important unverified behavior. Keep binary recordings out of source control unless the project asks for them.
 
-For before-and-after comparisons, several tabs, different web apps, terminal segments, or side-by-side playback, read [advanced walkthroughs](references/advanced.md). A composed browser/terminal video is assembled from separate recordings. Full desktop capture and native app switching require a separate desktop recorder and display access.
+For comparison videos, several tabs, different web apps, terminal segments, or side-by-side playback, read [advanced walkthroughs](references/advanced.md). A composed browser/terminal video is assembled from separate recordings. Full desktop capture and native app switching require a separate desktop recorder and display access.
 
 Sources: live T3 Code recording tool descriptions; [Playwright video recording](https://playwright.dev/python/docs/videos); [Claude Code skills](https://code.claude.com/docs/en/skills); [FFmpeg filters](https://www.ffmpeg.org/ffmpeg-filters.html); [asciinema recording](https://docs.asciinema.org/manual/cli/quick-start/).

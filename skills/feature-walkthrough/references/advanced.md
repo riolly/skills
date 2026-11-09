@@ -4,7 +4,7 @@
 
 In T3, open the existing app and the changed version in separate preview tabs with `preview_open({reuseExistingTab:false})`. Preserve both returned IDs and use explicit `tabId` for every action. Each recorder exports only its own tab's content, without the browser's tab bar or OS app switching. Without T3, record each version using a separate scenario with `record_browser.py`, as described in [portable recording](portable.md), then compose the clips below. Two sequential recordings are sufficient; simultaneous recording is optional.
 
-For an actual change comparison, record a known baseline before editing, use an existing deployment at the baseline revision, or build the baseline from a separate clean checkout. Run the new worktree on its own port. Record the revision and URL for each. Do not call arbitrary production and local versions "before" and "after" without checking their revisions. If the baseline cannot be obtained, say so and demonstrate the new behavior alone.
+For an actual change comparison, in video or screenshots, capture a known baseline before editing, use an existing deployment at the baseline revision, or build the baseline from a separate clean checkout. Run the new worktree on its own port. Record the revision and URL for each. Do not call arbitrary production and local versions "before" and "after" without checking their revisions. If the baseline cannot be obtained, say so and show the new behavior alone.
 
 Use matching viewport sizes, sample data, routes, and actions. Different ports isolate local storage. Avoid clearing a user's stored data to align the comparison. Record each tab with its own start/stop calls. If recording several tabs, stop every started recorder even after an action fails. Preserve every returned recording path.
 
@@ -46,7 +46,7 @@ window.__walkthrough.mark({
 - `target` accepts an element in place of `selector`, for one that CSS cannot reach from the document, such as an element inside a shadow root.
 - `duration` accepts 100–15000 milliseconds, then clears the mark. Only one active mark is shown. `status()` reports the current mark.
 
-For a screenshot, `still(items)` draws several marks at once, fully drawn and with no time limit, until `clear()` or `destroy()`. Each item takes `selector` or `target`, plus optional `shape` (`rectangle` or `circle`), `label`, `color` and `padding` (default 4, so neighbouring tiles get separate outlines). It accepts 1–12 items and checks all of them before drawing any, so a bad selector draws nothing. A later `mark()` leaves them in place.
+For a screenshot, `still(items)` draws several marks at once, fully drawn and with no time limit, until `clear()` or `destroy()`. Each item takes `selector` or `target`, plus optional `shape` (`rectangle` or `circle`), `label`, `color` and `padding` (default 4, so neighbouring tiles get separate outlines). It accepts 1–12 items and checks all of them before drawing any, so a bad selector draws nothing. A later `mark()` leaves them in place. When two labels would overlap, the later one moves below the earlier one. Still marks follow layout shifts, and a mark whose element leaves the page disappears, so call `still()` again after a re-render.
 
 ```js
 window.__walkthrough.still([
