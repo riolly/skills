@@ -46,9 +46,18 @@ window.__walkthrough.mark({
 - `target` accepts an element in place of `selector`, for one that CSS cannot reach from the document, such as an element inside a shadow root.
 - `duration` accepts 100–15000 milliseconds, then clears the mark. Only one active mark is shown. `status()` reports the current mark.
 
+For a screenshot, `still(items)` draws several marks at once, fully drawn and with no time limit, until `clear()` or `destroy()`. Each item takes `selector` or `target`, plus optional `shape` (`rectangle` or `circle`), `label`, `color` and `padding` (default 4, so neighbouring tiles get separate outlines). It accepts 1–12 items and checks all of them before drawing any, so a bad selector draws nothing. A later `mark()` leaves them in place.
+
+```js
+window.__walkthrough.still([
+  { selector: '#attended-tile', label: 'New tile' },
+  { selector: 'nav [href="/app/stats"]' }
+])
+```
+
 Marks follow the target's rendered position during scroll or resize. Reinspect and remark when a route change replaces the target. Full navigation requires installing the helper again. Background tabs can pause animation frames, so gesture clips should be checked in the exported video. Slow orbit gestures and a persistent shape survive low capture frame rates better than a fast wiggle.
 
-For a clean demonstration, mark the target before clicking, wait for the gesture, use the real browser click tool, then mark the result. Avoid covering another necessary control with a label. Use `clear()` between steps and `destroy()` at the end. The helpers return confirmation objects so evaluation can verify cleanup. Do not include annotation styles in the application's source or portray them as shipped UI.
+For a clean demonstration, mark the target before clicking, wait for the gesture, use the real browser click tool, then mark the result. Avoid covering another necessary control with a label. Use `clear()` between steps and `destroy()` at the end. `clear()` removes video and still marks alike. The helpers return confirmation objects so evaluation can verify cleanup. Do not include annotation styles in the application's source or portray them as shipped UI.
 
 ## Terminal segments
 

@@ -153,6 +153,43 @@ class WalkthroughIntegration(unittest.TestCase):
             for selector in ("text=Top", "#inner", "#low")]}, self.work / "targets.webm")
         self.assertEqual(len(report["steps"]), 3)
 
+    def test_still_marks_draw_several_rectangles_for_a_screenshot(self):
+        from playwright.sync_api import sync_playwright
+        url = self.page('<style>body{background:#808080;margin:0}p{position:absolute;font:20px sans-serif}</style>'
+                        '<p id="one" style="left:60px;top:60px">First change</p>'
+                        '<p id="two" style="left:360px;top:260px">Second change</p>')
+        annotate = (SCRIPTS / "annotate.js").read_text(encoding="utf-8").strip()
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={"width": 640, "height": 400})
+            page.goto(url)
+            page.evaluate(annotate)
+            with self.assertRaises(Exception):
+                page.evaluate("() => __walkthrough.still([{selector: '#one'}, {selector: '#missing'}])")
+            report = page.evaluate("() => __walkthrough.still([{selector: '#one', label: 'New'}, {selector: '#two'}])")
+            # A video mark that comes and goes leaves the still marks in place.
+            page.evaluate("() => { __walkthrough.mark({selector: '#one', duration: 100}) }")
+            page.wait_for_timeout(300)
+            shots = []
+            for name in ("one", "two"):
+                box = page.locator(f"#{name}").bounding_box()
+                shot = self.work / f"{name}.png"
+                page.screenshot(path=str(shot), clip={"x": box["x"] - 12, "y": box["y"] - 12,
+                                                       "width": box["width"] + 24, "height": box["height"] + 24})
+                shots.append(shot)
+            labels = page.evaluate("() => document.querySelector('[data-walkthrough-overlay]')"
+                                   ".shadowRoot.querySelectorAll('div').length")
+            cleared = page.evaluate("() => __walkthrough.clear()")
+            after = self.work / "after.png"
+            page.screenshot(path=str(after))
+            browser.close()
+        self.assertEqual([item["selector"] for item in report["stills"]], ["#one", "#two"])
+        for shot in shots:
+            self.assertTrue(self.shows(shot, self.orange, sample_step=3), f"{shot.name} has no outline")
+        self.assertEqual(labels, 2, "expected the video label plus one still label")
+        self.assertEqual(cleared, {"cleared": True})
+        self.assertFalse(self.shows(after, self.orange, sample_step=3), "clear() left an outline")
+
     def test_results_slower_than_five_seconds_are_awaited(self):
         url = self.page('<button id="apply" onclick="setTimeout(() => result.textContent = \'Saved\', 6000)">'
                         'Apply</button><p id="result">Waiting</p>')

@@ -1,6 +1,6 @@
 ---
 name: feature-walkthrough
-description: Record narrated, captioned feature walkthroughs, compare app versions across browser tabs, add circles, rectangles and animated pointer gestures, and include terminal output. Use when the user asks for a video demo, before-and-after comparison, or walkthrough. Also use while planning a user-visible web change, to decide whether a recording is worth offering; most changes need none.
+description: Record narrated, captioned feature walkthroughs, compare app versions across browser tabs, add circles, rectangles and animated pointer gestures, and include terminal output. Use when the user asks for a video demo, before-and-after comparison, or walkthrough, and whenever you take before-and-after screenshots of a UI change, to mark what changed. Also use while planning a user-visible web change, to decide whether a recording is worth offering; most changes need none.
 ---
 
 # Feature walkthrough
@@ -8,6 +8,16 @@ description: Record narrated, captioned feature walkthroughs, compare app versio
 Create a short video of the actual workflow, with a small set of steps the viewer can try. Deliver an MP4 with readable app text, a visible title, compact captions, and spoken narration by default. Use silent output when the user requests it. Aim for 30–90 seconds per workflow; use shorter clips for simple changes. Explain what changed, why it helps, what to click, and what the viewer should see. Support claims with the demonstrated behavior.
 
 For every narrated recording, read [spoken walkthroughs](references/narration.md) before planning scene lengths. A local Piper voice reads the same timed text used for captions without an API key. Captions remain useful with sound muted. If voice setup fails, report the failure explicitly with the available captioned clip.
+
+## Before-and-after screenshots
+
+A screenshot pair needs no recording. Mark the change on both shots, so the reader finds it at a glance:
+
+1. Open the version in the browser, scroll the change into view, and evaluate the trimmed text of `scripts/annotate.js` in the page, as described in [advanced walkthroughs](references/advanced.md).
+2. Call `__walkthrough.still([{ selector, label }, ...])` with one item per change, up to 12. A short label such as "New: follow-up tiles" helps when the change is small. On the before shot, mark the element the change replaces, or the spot where it will appear.
+3. Take the screenshot (`preview_snapshot({ save: true })` in T3, `page.screenshot()` in Playwright), then call `__walkthrough.destroy()`.
+
+Check the saved image: every rectangle surrounds its change, and no label covers it. Stop reading here unless a video is also wanted.
 
 ## Decide whether to record
 
