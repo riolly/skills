@@ -56,6 +56,14 @@ def validate(scenario):
                     or not all(isinstance(m, dict) and isinstance(m.get("selector"), str) and m["selector"].strip()
                                and set(m) <= MARK_KEYS for m in marks)):
                 raise ValueError(f"screenshot marks must be 0–12 objects with a selector and only {sorted(MARK_KEYS)}")
+            for m in marks:
+                if m.get("shape", "rectangle") not in {"rectangle", "circle"}:
+                    raise ValueError("screenshot mark shape must be rectangle or circle")
+                if not all(isinstance(m.get(key, ""), str) for key in ("label", "color")):
+                    raise ValueError("screenshot mark label and color must be text")
+                padding = m.get("padding", 4)
+                if isinstance(padding, bool) or not isinstance(padding, (int, float)) or not 0 <= padding <= 64:
+                    raise ValueError("screenshot mark padding must be 0–64 pixels")
         hold = float(step.get("hold", default_hold(action)))
         if not math.isfinite(hold) or not 0 <= hold <= 30: raise ValueError("hold must be 0–30 seconds")
     shots = screenshot_paths(scenario)
@@ -93,7 +101,7 @@ def record(scenario, output=None, headed=False, storage_state=None):
                     page.locator(scenario["ready_selector"]).wait_for(state="visible")
                 for i, step in enumerate(scenario["steps"]):
                     action = step["action"]
-                    locator = page.locator(step["selector"]) if "selector" in step else None
+                    locator = page.locator(step["selector"]) if action not in {"wait", "screenshot"} else None
                     if locator is not None:
                         expect(locator).to_have_count(1)
                         expect(locator).to_be_visible()
@@ -105,7 +113,7 @@ def record(scenario, output=None, headed=False, storage_state=None):
                     elif action == "scroll": locator.scroll_into_view_if_needed()
                     elif action == "assert-text": expect(locator).to_contain_text(step["text"])
                     elif action == "mark":
-                        hold = float(step.get("hold", 3))
+                        hold = float(step.get("hold", default_hold(action)))
                         page.evaluate(annotate)
                         options = {key: step[key] for key in ("selector", "shape", "gesture", "label", "color", "padding") if key in step}
                         options["duration"] = min(15000, max(100, round(hold * 1000)))
@@ -128,6 +136,7 @@ def record(scenario, output=None, headed=False, storage_state=None):
                         shot = Path(temporary) / f"screenshot-{len(taken)}.png"
                         page.screenshot(path=str(shot))
                         page.evaluate("() => window.__walkthrough.clear()")
+                        for handle in targets: handle.dispose()
                         taken.append(shot)
                     page.wait_for_timeout(float(step.get("hold", default_hold(action))) * 1000)
                 page.evaluate("() => window.__walkthrough?.destroy()")
@@ -165,6 +174,7 @@ def main():
         for path in [output, *screenshot_paths(scenario)]:
             if path is None: continue
             if path in protected: parser.error("an output must not replace the scenario or authentication state")
+            if path.is_dir(): parser.error(f"{path} is a directory; name a file")
             if path.exists() and not args.force: parser.error(f"{path} exists; choose another path or pass --force")
         if output is None:
             print(json.dumps(record(scenario, None, args.headed, args.storage_state), indent=2))

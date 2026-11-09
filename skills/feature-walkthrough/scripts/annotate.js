@@ -120,7 +120,7 @@
     return { ...last, bounds: { x:initial.x,y:initial.y,width:initial.width,height:initial.height } };
   };
   // Still marks: several at once, fully drawn, kept until clear(). For screenshots, not video.
-  let stills = [], stillFrame = null;
+  let stills = [], stillObservers = [];
   const placeStills = () => {
     const placed = [];
     for (const { target, outline, caption, padding } of stills) {
@@ -135,29 +135,37 @@
       else attr(outline, { x, y, width: w, height: h });
       if (!caption) continue;
       placeLabel(caption, x, y, h);
-      // Neighbouring marks would stack their labels; push this one below any it overlaps.
+      // Neighbouring marks would stack their labels. Move this one below the labels it overlaps,
+      // or above them when that would leave the viewport.
       const left = parseFloat(caption.style.left), width = caption.offsetWidth, height = caption.offsetHeight;
-      let top = parseFloat(caption.style.top);
-      for (let moved = true; moved;) {
-        moved = false;
-        for (const p of placed) {
-          if (left < p.right && left + width > p.left && top < p.bottom && top + height > p.top) {
-            top = p.bottom + 6; moved = true;
-          }
-        }
+      const start = parseFloat(caption.style.top);
+      const clash = top => placed.find(p => left < p.right && left + width > p.left && top < p.bottom && top + height > p.top);
+      let top = start;
+      for (let p = clash(top); p; p = clash(top)) top = p.bottom + 6;
+      if (top + height > innerHeight - 8) {
+        top = start;
+        for (let p = clash(top); p; p = clash(top)) top = p.top - height - 6;
       }
       caption.style.top = `${top}px`;
       placed.push({ left, right: left + width, top, bottom: top + height });
     }
     stillSvg.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
   };
-  // Follow layout shifts, such as an image that loads after the marks are drawn.
-  const followStills = () => { placeStills(); stillFrame = requestAnimationFrame(followStills); };
+  // Follow layout shifts, such as an image that loads after the marks are drawn, and re-renders
+  // that remove a marked element. Observers run only when something changes.
+  const followStills = () => {
+    const resize = new ResizeObserver(placeStills);
+    for (const element of [document.documentElement, ...stills.map(s => s.target)]) resize.observe(element);
+    const mutation = new MutationObserver(placeStills);
+    mutation.observe(document.documentElement, { childList:true, subtree:true });
+    stillObservers = [resize, mutation];
+    placeStills();
+  };
   const clearStills = () => {
     for (const { outline, caption } of stills) { outline.remove(); caption?.remove(); }
     stills = [];
-    if (stillFrame !== null) cancelAnimationFrame(stillFrame);
-    stillFrame = null;
+    for (const observer of stillObservers) observer.disconnect();
+    stillObservers = [];
     removeEventListener('scroll', placeStills, true);
     removeEventListener('resize', placeStills);
   };

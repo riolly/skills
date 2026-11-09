@@ -68,6 +68,6 @@ A `screenshot` step saves the viewport as a PNG at `path`, absolute or relative 
 uv run --python 3.12 "$WALKTHROUGH_SKILL_DIR"/scripts/record_browser.py /absolute/path/after.json
 ```
 
-Run the same scenario against the baseline URL with a `before-` path for the other half of a pair. Screenshots appear only when every step passes, and an existing image requires `--force`. With a video output as well, the steps run once and produce both.
+Run the same scenario against the baseline URL with a `before-` path for the other half of a pair. Screenshots appear only when every step passes, and an existing image requires `--force`. With a video output as well, the steps run once and produce both, and each marked shot shows its marks in the video for a moment.
 
 Sources: [Playwright recording](https://playwright.dev/python/docs/videos), [browser setup](https://playwright.dev/python/docs/browsers), and the linked uv, asciinema, and agg documentation.
