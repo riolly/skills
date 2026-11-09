@@ -49,7 +49,7 @@ Done when the owner approves the plan.
 
 ## 5. Build
 
-Build one slice per PR, each in a fresh context: a new thread or worktree per slice when the owner wants them in parallel, or one after another here. Each slice follows the project's workflow and its PR body lists the item numbers it closes, in the users' words. If a slice grows past about 600 lines while building, split it before filing.
+Build one slice per PR, each in a fresh context: a new thread or worktree per slice when the owner wants them in parallel, or one after another here. Each slice follows the project's workflow and its PR body lists the item numbers it closes, in the users' words. If a slice grows past about 400 changed lines while building, split it before filing. Go past it only when splitting would leave a broken step in between, and say why in the PR body.
 
 Done when every slice is a PR, or the owner has dropped it.
 
