@@ -1,4 +1,5 @@
-/* Evaluate this file once with T3 preview_evaluate, then call __walkthrough.mark(). */
+/* Evaluate this file once with T3 preview_evaluate, then call __walkthrough.mark() for video
+   or __walkthrough.still([...]) for a screenshot. */
 (() => {
   window.__walkthrough?.destroy();
   const attr = (element, values) => Object.entries(values).forEach(([k,v]) => element.setAttribute(k, v));
@@ -23,11 +24,25 @@
   add(pointer, 'circle', { r:15, fill:'#f9731640', stroke:'#f97316', 'stroke-width':2 });
   add(pointer, 'path', { d:'M0 0 L0 24 L6 18 L11 29 L16 27 L11 16 L20 16 Z',
     fill:'#fff', stroke:'#142033', 'stroke-width':2, 'stroke-linejoin':'round' });
-  const label = root.appendChild(document.createElement('div'));
-  Object.assign(label.style, { position:'absolute', maxWidth:'min(420px,80vw)', padding:'8px 12px',
-    borderRadius:'8px', background:'#142033', color:'white', font:'600 17px/1.35 sans-serif',
-    boxShadow:'0 2px 10px #0005', boxSizing:'border-box' });
-  for (const element of [svg, label]) element.style.setProperty('pointer-events', 'none', 'important');
+  const makeLabel = () => {
+    const element = root.appendChild(document.createElement('div'));
+    Object.assign(element.style, { position:'absolute', maxWidth:'min(420px,80vw)', padding:'8px 12px',
+      borderRadius:'8px', background:'#142033', color:'white', font:'600 17px/1.35 sans-serif',
+      boxShadow:'0 2px 10px #0005', boxSizing:'border-box' });
+    element.style.setProperty('pointer-events', 'none', 'important');
+    return element;
+  };
+  const label = makeLabel();
+  // Still marks get their own layer, so a mark() for video never clears them.
+  const stillSvg = add(root, 'svg');
+  Object.assign(stillSvg.style, { position:'absolute', inset:'0', width:'100%', height:'100%', overflow:'visible' });
+  for (const element of [svg, stillSvg]) element.style.setProperty('pointer-events', 'none', 'important');
+  // Above the box when it fits, otherwise below it, always inside the viewport.
+  const placeLabel = (element, x, y, h) => {
+    element.style.left = `${Math.max(8, Math.min(x, innerWidth-element.offsetWidth-8))}px`;
+    const above = y-element.offsetHeight-14, below = y+h+14;
+    element.style.top = `${Math.max(8, Math.min(innerHeight-element.offsetHeight-8, above >= 8 ? above : below))}px`;
+  };
   document.documentElement.append(host);
   // z-index cannot reach above a modal dialog, popover, or fullscreen element. Those are in the
   // browser's top layer, which stacks by entry order, so the overlay joins it again for every mark.
@@ -39,19 +54,15 @@
     host.showPopover();
   };
   let frame = null, expiry = null, last = null;
-  const clear = () => {
+  const clearMark = () => {
     if (frame !== null) cancelAnimationFrame(frame);
     clearTimeout(expiry);
     frame = null; last = null;
     svg.style.visibility = label.style.visibility = 'hidden';
-    return { cleared:true };
   };
-  // An integration that has already resolved the element passes it as target instead of a selector.
-  const mark = ({ selector, target, shape = 'rectangle', gesture = 'none',
-    label: caption = '', duration = 3500, padding = 8, color = '#f97316' } = {}) => {
-    if (!['rectangle','circle','none'].includes(shape)) throw Error('Unknown shape');
-    if (!['wiggle','circle','none'].includes(gesture)) throw Error('Unknown gesture');
-    if (!Number.isFinite(duration) || duration < 100 || duration > 15000) throw Error('Duration must be 100–15000 ms');
+  // Returns the one visible element a selector names. An integration that has already
+  // resolved the element passes it as target instead of a selector.
+  const resolve = (selector, target, padding, color) => {
     if (!Number.isFinite(padding) || padding < 0 || padding > 64) throw Error('Padding must be 0–64 px');
     if (!CSS.supports('color', color)) throw Error('Invalid color');
     if (!(target instanceof Element)) {
@@ -62,7 +73,16 @@
     const initial = target.getBoundingClientRect();
     if (initial.width <= 0 || initial.height <= 0 || initial.bottom <= 0 || initial.top >= innerHeight
       || initial.right <= 0 || initial.left >= innerWidth) throw Error('Target is not visible in the viewport');
-    clear();
+    return { target, initial };
+  };
+  const mark = ({ selector, target, shape = 'rectangle', gesture = 'none',
+    label: caption = '', duration = 3500, padding = 8, color = '#f97316' } = {}) => {
+    if (!['rectangle','circle','none'].includes(shape)) throw Error('Unknown shape');
+    if (!['wiggle','circle','none'].includes(gesture)) throw Error('Unknown gesture');
+    if (!Number.isFinite(duration) || duration < 100 || duration > 15000) throw Error('Duration must be 100–15000 ms');
+    let initial;
+    ({ target, initial } = resolve(selector, target, padding, color));
+    clearMark();
     raise();
     marks.setAttribute('stroke', color);
     circle.style.display = shape === 'circle' ? '' : 'none';
@@ -73,7 +93,7 @@
     label.style.visibility = caption ? 'visible' : 'hidden';
     const began = performance.now();
     const draw = now => {
-      if (!host.isConnected || !target.isConnected || now - began >= duration) { clear(); return; }
+      if (!host.isConnected || !target.isConnected || now - began >= duration) { clearMark(); return; }
       const r = target.getBoundingClientRect();
       const x = r.left - padding, y = r.top - padding;
       const w = r.width + padding * 2, h = r.height + padding * 2;
@@ -90,20 +110,92 @@
       const px = gesture === 'circle' ? cx + (w/2+14)*Math.cos(angle) : cx + 24*Math.sin(angle*2);
       const py = gesture === 'circle' ? cy + (h/2+14)*Math.sin(angle) : cy;
       pointer.setAttribute('transform', `translate(${px} ${py})`);
-      label.style.left = `${Math.max(8, Math.min(x, innerWidth-label.offsetWidth-8))}px`;
-      const above = y-label.offsetHeight-14, below = y+h+14;
-      label.style.top = `${Math.max(8, Math.min(innerHeight-label.offsetHeight-8, above >= 8 ? above : below))}px`;
+      placeLabel(label, x, y, h);
       frame = requestAnimationFrame(draw);
     };
     last = { selector, shape, gesture, duration, animatedPointer: gesture !== 'none' };
     draw(began);
     // A timer also cleans up when a background tab pauses animation frames.
-    expiry = setTimeout(clear, duration);
+    expiry = setTimeout(clearMark, duration);
     return { ...last, bounds: { x:initial.x,y:initial.y,width:initial.width,height:initial.height } };
   };
-  const api = { mark, clear, status: () => last,
+  // Still marks: several at once, fully drawn, kept until clear(). For screenshots, not video.
+  let stills = [], stillObservers = [];
+  const placeStills = () => {
+    const placed = [];
+    for (const { target, outline, caption, padding } of stills) {
+      // A re-render replaces the element; hide its mark rather than draw it at a stale spot.
+      const shown = target.isConnected;
+      outline.style.visibility = shown ? 'visible' : 'hidden';
+      if (caption) caption.style.visibility = shown ? 'visible' : 'hidden';
+      if (!shown) continue;
+      const r = target.getBoundingClientRect();
+      const x = r.left - padding, y = r.top - padding, w = r.width + padding * 2, h = r.height + padding * 2;
+      if (outline.tagName === 'ellipse') attr(outline, { cx: x + w/2, cy: y + h/2, rx: w/2 + 4, ry: h/2 + 4 });
+      else attr(outline, { x, y, width: w, height: h });
+      if (!caption) continue;
+      placeLabel(caption, x, y, h);
+      // Neighbouring marks would stack their labels. Move this one below the labels it overlaps,
+      // or above them when that would leave the viewport.
+      const left = parseFloat(caption.style.left), width = caption.offsetWidth, height = caption.offsetHeight;
+      const start = parseFloat(caption.style.top);
+      const clash = top => placed.find(p => left < p.right && left + width > p.left && top < p.bottom && top + height > p.top);
+      let top = start;
+      for (let p = clash(top); p; p = clash(top)) top = p.bottom + 6;
+      if (top + height > innerHeight - 8) {
+        top = start;
+        for (let p = clash(top); p; p = clash(top)) top = p.top - height - 6;
+      }
+      caption.style.top = `${top}px`;
+      placed.push({ left, right: left + width, top, bottom: top + height });
+    }
+    stillSvg.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
+  };
+  // Follow layout shifts, such as an image that loads after the marks are drawn, and re-renders
+  // that remove a marked element. Observers run only when something changes.
+  const followStills = () => {
+    const resize = new ResizeObserver(placeStills);
+    for (const element of [document.documentElement, ...stills.map(s => s.target)]) resize.observe(element);
+    const mutation = new MutationObserver(placeStills);
+    mutation.observe(document.documentElement, { childList:true, subtree:true });
+    stillObservers = [resize, mutation];
+    placeStills();
+  };
+  const clearStills = () => {
+    for (const { outline, caption } of stills) { outline.remove(); caption?.remove(); }
+    stills = [];
+    for (const observer of stillObservers) observer.disconnect();
+    stillObservers = [];
+    removeEventListener('scroll', placeStills, true);
+    removeEventListener('resize', placeStills);
+  };
+  const still = (items) => {
+    if (!Array.isArray(items) || items.length < 1 || items.length > 12) throw Error('Pass 1–12 marks');
+    // Check every item before drawing any, so a bad selector leaves no partial marks.
+    // Tighter than mark()'s 8px, so neighbours such as tiles in a grid get separate outlines.
+    const resolved = items.map(({ selector, target, shape = 'rectangle', label: text = '',
+      padding = 4, color = '#f97316' } = {}) => {
+      if (!['rectangle','circle'].includes(shape)) throw Error('Unknown shape');
+      return { ...resolve(selector, target, padding, color), selector, shape, text: String(text), padding, color };
+    });
+    clearStills();
+    raise();
+    stills = resolved.map(({ target, shape, text, padding, color }) => ({
+      target, padding,
+      outline: add(stillSvg, shape === 'circle' ? 'ellipse' : 'rect',
+        { fill:'none', stroke: color, 'stroke-width': 4, ...(shape === 'rectangle' ? { rx: 8 } : {}) }),
+      caption: text ? Object.assign(makeLabel(), { textContent: text }) : null,
+    }));
+    followStills();
+    addEventListener('scroll', placeStills, true);
+    addEventListener('resize', placeStills);
+    return { stills: resolved.map(({ selector, shape, initial }) =>
+      ({ selector, shape, bounds: { x:initial.x, y:initial.y, width:initial.width, height:initial.height } })) };
+  };
+  const clear = () => { clearMark(); clearStills(); return { cleared:true }; };
+  const api = { mark, still, clear, status: () => last,
     destroy() { clear();host.remove();if (window.__walkthrough === api) delete window.__walkthrough;return { removed:true }; } };
   window.__walkthrough = api;
-  clear();
+  clearMark();
   return { installed:true, shapes:['circle','rectangle'], gestures:['circle','wiggle'], syntheticPointer:true };
 })();
