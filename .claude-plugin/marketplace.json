@@ -7,19 +7,12 @@
   },
   "plugins": [
     {
-      "name": "designing-ui",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/designing-ui"],
-      "description": "Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states.",
-      "homepage": "https://github.com/riolly/skills",
-      "repository": "https://github.com/riolly/skills"
-    },
-    {
       "name": "feature-walkthrough",
       "source": "./",
       "strict": false,
-      "skills": ["./skills/feature-walkthrough"],
+      "skills": [
+        "./skills/feature-walkthrough"
+      ],
       "description": "Record narrated, captioned walkthroughs of real browser workflows, and compare app versions.",
       "homepage": "https://github.com/riolly/skills",
       "repository": "https://github.com/riolly/skills"
@@ -28,7 +21,9 @@
       "name": "feedback-round",
       "source": "./",
       "strict": false,
-      "skills": ["./skills/feedback-round"],
+      "skills": [
+        "./skills/feedback-round"
+      ],
       "description": "Turn a batch of user feedback into small PRs: triage, questions, slices of about 400 lines, and a reply for the users.",
       "homepage": "https://github.com/riolly/skills",
       "repository": "https://github.com/riolly/skills"
@@ -37,7 +32,9 @@
       "name": "phase-up",
       "source": "./",
       "strict": false,
-      "skills": ["./skills/phase-up"],
+      "skills": [
+        "./skills/phase-up"
+      ],
       "description": "Audit a project against Day 0 or its next phase gate and set up what's missing, in small PRs.",
       "homepage": "https://github.com/riolly/skills",
       "repository": "https://github.com/riolly/skills"
@@ -46,7 +43,9 @@
       "name": "tailscale-machine",
       "source": "./",
       "strict": false,
-      "skills": ["./skills/tailscale-machine"],
+      "skills": [
+        "./skills/tailscale-machine"
+      ],
       "description": "Add a machine to a tailnet and get it connecting directly, or work out why two machines are slow or relayed.",
       "homepage": "https://github.com/riolly/skills",
       "repository": "https://github.com/riolly/skills"
