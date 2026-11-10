@@ -4,13 +4,12 @@ Agent skills for Claude Code and Codex.
 
 | Skill | What it does |
 | --- | --- |
-| [`designing-ui`](skills/designing-ui/SKILL.md) | Steps and rules for designing a screen: rank, grouping, spacing, type, colour tokens, component composition and states. Loads when a task builds or restyles UI, creates a theme, or reviews how a UI looks. |
 | [`feedback-round`](skills/feedback-round/SKILL.md) | Turn a batch of user feedback into small PRs: number and triage each item, ask about the unclear ones in one message, slice the work into PRs of about 400 lines, and draft the reply for the users. |
 | [`feature-walkthrough`](skills/feature-walkthrough/SKILL.md) | Pick the proof for a user-visible change: nothing, a marked screenshot, a before-and-after pair or a video. Takes screenshots without asking and asks before recording. Videos are real browser workflows with narration or captions, pointer gestures, side-by-side version comparisons and terminal output. |
 | [`phase-up`](skills/phase-up/SKILL.md) | Audit a project against Day 0 or its next phase gate (prototype → product → platform), then set up what's missing in small PRs, protecting real data first. YoungPro is the benchmark and the eval. |
 | [`tailscale-machine`](skills/tailscale-machine/SKILL.md) | Add a machine to a tailnet and get it connecting directly, or work out why two machines are slow or relayed. Keeps your own addresses in a private local file. |
 
-The rules in `designing-ui` come from [docs/ui-design-principles.md](docs/ui-design-principles.md), which records the sources and the decisions behind them.
+`designing-ui` was removed on 2026-11-10 in favour of uizze's `ui-taste`. Its last version is in the git history.
 
 ## Install
 
@@ -27,7 +26,7 @@ npx skills add riolly/skills
 The CLI asks which agents to install for. To install for every project on the machine, add `-g`. To skip the prompts:
 
 ```bash
-npx skills add riolly/skills --skill designing-ui -g -a claude-code -y
+npx skills add riolly/skills --skill tailscale-machine -g -a claude-code -y
 ```
 
 Install the video walkthrough skill for both Claude Code and Codex:
@@ -49,7 +48,7 @@ Update or remove later:
 
 ```bash
 npx skills update
-npx skills remove designing-ui
+npx skills remove tailscale-machine
 ```
 
 ### 2. Claude Code plugin
@@ -81,7 +80,6 @@ claude plugin update tailscale-machine@riolly-skills
 ```bash
 git clone https://github.com/riolly/skills
 mkdir -p ~/.claude/skills
-cp -r skills/skills/designing-ui ~/.claude/skills/
 cp -r skills/skills/feature-walkthrough ~/.claude/skills/
 cp -r skills/skills/tailscale-machine ~/.claude/skills/
 ```
@@ -89,8 +87,6 @@ cp -r skills/skills/tailscale-machine ~/.claude/skills/
 Copy into a project's `.claude/skills/` instead to install it for that project only.
 
 ## Use
-
-Claude Code loads the skill on its own when a task involves UI. To call it directly, type `/designing-ui`, or `/designing-ui:designing-ui` when installed as a plugin.
 
 For a feature report, ask for a short narrated walkthrough or invoke `/feature-walkthrough` in Claude Code, `/feature-walkthrough:feature-walkthrough` through the plugin, or `$feature-walkthrough` in Codex. It explains what changed, demonstrates the actual result, and gives you steps to try.
 
