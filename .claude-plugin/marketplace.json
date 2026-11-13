@@ -40,6 +40,17 @@
       "repository": "https://github.com/riolly/skills"
     },
     {
+      "name": "prune",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/prune"
+      ],
+      "description": "Cut a codebase down: delete or shorten unused code, dependencies, comments and stale docs, in small PRs.",
+      "homepage": "https://github.com/riolly/skills",
+      "repository": "https://github.com/riolly/skills"
+    },
+    {
       "name": "tailscale-machine",
       "source": "./",
       "strict": false,
