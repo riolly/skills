@@ -31,6 +31,12 @@ Tools that list prune candidates, by ecosystem. Each one gives candidates, not v
 - TODOs: `rg -n 'TODO|FIXME|XXX|HACK'`, then check each against the code and `git log`.
 - Files nobody touches: `git log -1 --format=%cr -- <file>`. Age alone is no verdict, only a reason to look.
 
+## Tests
+
+- Skipped tests: `rg -n '\.(skip|todo)\(|\bx(it|describe|test)\(|@pytest\.mark\.skip|@unittest\.skip|t\.Skip\(|#\[ignore\]'`. Cut one only when its reason is gone or it has been skipped for months (`git log -1 --format=%cr -S '<skip line>'`).
+- Unused fixtures, mocks and helpers: search each exported name and file name in the test files. For snapshots, the Vitest and Jest summaries list obsolete ones, and `npx vitest run -u` or `npx jest -u` deletes them. Run `-u` only on a green suite, because it also rewrites failing snapshots.
+- Coverage of the app code: `npx vitest run --coverage`, `npx jest --coverage`, `pytest --cov=<package>`, `go test -cover ./...`, `cargo llvm-cov`. Compare the line percentage for the app files, not the total, because deleting tests changes the total's base.
+
 ## Docs and agent context
 
 Check every claim a doc makes that the repo can confirm:
