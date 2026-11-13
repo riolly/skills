@@ -2,6 +2,13 @@
 
 Tools that list prune candidates, by ecosystem. Each one gives candidates, not verdicts. Check every hit with `rg` before cutting it.
 
+## Size
+
+Give both commands the count's exclusions as pathspecs after the `--`, such as `':!bun.lock' ':!vendor/**'`.
+
+- The largest directories, two levels deep: `git ls-files -z -- . | xargs -0 wc -l | awk '$2!="total"{n=split($2,p,"/"); d=(n==1?".":(n==2?p[1]:p[1]"/"p[2])); s[d]+=$1} END{for(k in s) print s[k], k}' | sort -rn | head -20`. The list exists so that no large area is skipped. A directory on it that no finder below has run over has not been searched yet.
+- Words in the docs: `git ls-files -z -- '*.md' '*.mdx' '*.rst' '*.txt' | xargs -0 cat | wc -w`.
+
 ## JavaScript and TypeScript
 
 - `npx knip` lists unused files, exports, types, dependencies and devDependencies, and packages used but not listed. It has plugins for most frameworks. When it reports framework entry files (TanStack Start routes, Astro pages, config files) as unused, add them to `entry` in a `knip.json` instead of deleting them.
@@ -30,6 +37,16 @@ Tools that list prune candidates, by ecosystem. Each one gives candidates, not v
 - Commented-out code: `rg -n '^\s*(//|#)\s*(import|const|let|var|function|def|return|if|for|await|export)\b'`.
 - TODOs: `rg -n 'TODO|FIXME|XXX|HACK'`, then check each against the code and `git log`.
 - Files nobody touches: `git log -1 --format=%cr -- <file>`. Age alone is no verdict, only a reason to look.
+
+## Duplicates
+
+Run these over the test files as well as the app code. Helpers copied between test files are the common case.
+
+- Copied blocks: `npx jscpd <dir> --min-lines 5 --min-tokens 50 --reporters console` works for most languages. Pass `--ignore` for fixtures and generated files.
+- One name defined in several files: `rg -o --no-filename '^\s*(export )?(async )?function (\w+)|^\s*(export )?const (\w+)\s*[:=]' -r '$3$5' <dir> | sort | uniq -c | awk '$1>1' | sort -rn`. Change the pattern to the language's definition syntax. Read each hit, because two files can use one name for different things.
+- One definition written out twice by hand: `rg -n -i 'parity|mirrors?\b|in sync|by hand'` in tests and comments. A test that compares two files, such as a schema and its DDL, marks the pair. Raise the pair as an **ask** item with the size of the second copy. Generating one from the other removes that copy, in its own PR, once the generated output matches the hand-written one. The comparing test goes only when the build generates the copy and nobody commits it.
+- Compare two copies before merging them. A different regex, default or edge case is a difference in behaviour, and those two stay separate.
+- Merging helpers copied between test files is a rewrite. The tests that use the helper check the merge, so it goes in the rewrite PR.
 
 ## Tests
 
