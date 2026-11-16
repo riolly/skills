@@ -28,7 +28,7 @@ Done when the collector exited 0 and printed a block for every project.
 
 Print the report in this order, and leave out a heading with nothing under it.
 
-**State.** One sentence: how many projects, how many ready PRs, how many `Decide` issues, and how many `Do` items (each `Do` issue plus each PR with unchecked boxes and no issue).
+**State.** One sentence: how many projects, how many ready PRs, how many `Decide` issues, and how many `Do` items (each `Do` issue plus each PR with unchecked boxes and no issue). Then how many days the oldest `needs-you` issue has waited and how many days the oldest ready PR has been open, from the collector's `waiting` and `open` figures.
 
 **Table.** One row per project, in `projects.yaml` order:
 

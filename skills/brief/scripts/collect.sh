@@ -75,7 +75,7 @@ pr_jq='
   if length == 0 then "prs: none open" else .[] | .statusCheckRollup as $rollup |
     "pr #\(.number) \(.title)\n  \(.url)\n  \(.headRefName) -> \(.baseRefName), \(if .isDraft then "draft" else "not draft" end), \(.mergeable | ascii_downcase), checks: \(.statusCheckRollup | summary)"
     + (["fail", "pending"] | map(. as $b | ($rollup | named($b)) as $n | select($n != "") | " (\($b): \($n))") | join(""))
-    + ", review: \(if (.reviewDecision // "") == "" then "none" else (.reviewDecision | ascii_downcase) end), updated \(.updatedAt[0:10])"
+    + ", review: \(if (.reviewDecision // "") == "" then "none" else (.reviewDecision | ascii_downcase) end), open \((now - (.createdAt | fromdateiso8601)) / 86400 | floor) days, updated \(.updatedAt[0:10])"
     + (.body | steps | map("\n  [ ] " + .) | join(""))
   end'
 
@@ -102,7 +102,7 @@ project() {
   fi
 
   gh pr list -R "$repo" --state open --limit 50 \
-    --json number,title,url,headRefName,baseRefName,isDraft,mergeable,reviewDecision,updatedAt,statusCheckRollup,body \
+    --json number,title,url,headRefName,baseRefName,isDraft,mergeable,reviewDecision,createdAt,updatedAt,statusCheckRollup,body \
     --jq "$pr_jq" 2>&1
 
   if [ -n "$want" ]; then
@@ -143,8 +143,8 @@ done <"$tmp/projects.txt"
 prefix=""
 [ -n "$want" ] && prefix="$(cut -d'|' -f1 "$tmp/projects.txt" | tr '[:upper:]' '[:lower:]'):"
 gh issue list -R "$registry" --label needs-you --state open --limit 100 \
-  --json number,title,url,updatedAt,body \
-  --jq 'sort_by(.number) | .[] | select(.title | ascii_downcase | startswith("'"${prefix//\"/}"'")) | "### #\(.number) \(.title)\n\(.url), updated \(.updatedAt[0:10])\n\(.body)\n"' >"$tmp/issues" 2>&1 &
+  --json number,title,url,createdAt,updatedAt,body \
+  --jq 'sort_by(.number) | .[] | select(.title | ascii_downcase | startswith("'"${prefix//\"/}"'")) | "### #\(.number) \(.title)\n\(.url), waiting \((now - (.createdAt | fromdateiso8601)) / 86400 | floor) days, updated \(.updatedAt[0:10])\n\(.body)\n"' >"$tmp/issues" 2>&1 &
 wait
 
 echo "machine: $(hostname -s)"
