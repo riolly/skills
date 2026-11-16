@@ -52,7 +52,7 @@ fi
 # Map each checkout under the roots to its GitHub repo, once.
 for root in $roots; do
   for d in "$root"/*/; do
-    [ -e "$d/.git" ] || continue
+    [ -d "$d/.git" ] || continue  # a clone, not a linked worktree; worktrees are listed below
     url=$(git -C "$d" remote get-url origin 2>/dev/null) || continue
     slug=$(printf '%s' "$url" | sed -E 's#^[a-z+]+://[^/]+/##; s#^[^@/]+@[^:]+:##; s#\.git$##')
     printf '%s\t%s\n' "$slug" "${d%/}"
@@ -68,7 +68,7 @@ pr_jq='
   def summary: if length == 0 then "none" else (group_by(bucket) | map("\(length) \(.[0] | bucket)") | join(", ")) end;
   def named($b): map(select(bucket == $b) | (.name // .context)) | join(", ");
   def steps: (. // "") | split("\n") | reduce .[] as $l ({sec: null, out: []};
-    if ($l | test("^\\s*(#+\\s*|\\*\\*)?(before|after) merge(\\*\\*)?:?\\s*$"; "i")) then .sec = ($l | ascii_downcase | capture("(?<s>before|after) merge").s)
+    if ($l | test("^\\s*(#+\\s*|\\*\\*)?(before|after) merge:?(\\*\\*)?:?\\s*$"; "i")) then .sec = ($l | ascii_downcase | capture("(?<s>before|after) merge").s)
     elif ($l | test("^\\s*#")) then .sec = null
     elif .sec != null and ($l | test("^\\s*[-*] \\[ \\]")) then .out += ["\(.sec) merge: \($l | sub("^\\s*[-*] \\[ \\]\\s*"; ""))"]
     else . end) | .out;
@@ -81,7 +81,7 @@ pr_jq='
 
 project() {
   local name=$1 repo=$2 target=$3 links=$4
-  local default phase found=0 slug dir merged b n wt
+  local default phase found=0 slug dir b n wt
   default=$(gh api "repos/$repo" --jq .default_branch 2>&1) || { echo "## $name ($repo)"; echo "error: $default"; return; }
   echo "## $name ($repo) default=$default target=$target"
   [ -n "$links" ] && echo "links: $links"
@@ -90,9 +90,15 @@ project() {
   echo "phase: ${phase:-MISSING, no Phase: line in CLAUDE.md on $target}"
 
   if [ "$target" != "$default" ]; then
-    gh api "repos/$repo/compare/$default...$target?per_page=1" --jq \
-      '"target: \(.ahead_by) commits ahead of '"$default"', \(.behind_by) behind, oldest unreleased commit \(.commits[0].commit.committer.date[0:10]), \(((now - (.commits[0].commit.committer.date | fromdateiso8601)) / 86400) | floor) days old\(if (now - (.commits[0].commit.committer.date | fromdateiso8601)) > 259200 then ", STALE: over 3 days" else "" end)"' 2>/dev/null \
-      || echo "target: MISSING, $target is not a branch on GitHub"
+    if ! gh api "repos/$repo/branches/$target" --silent 2>/dev/null; then
+      echo "target: MISSING, $target is not a branch on GitHub"
+    else
+      gh api "repos/$repo/compare/$default...$target?per_page=1" --jq '
+        if .ahead_by == 0 then "target: 0 commits ahead of '"$default"', nothing to release"
+        else (.commits[0].commit.committer.date) as $d | ((now - ($d | fromdateiso8601)) / 86400) as $age |
+          "target: \(.ahead_by) commits ahead of '"$default"', \(.behind_by) behind, oldest unreleased commit \($d[0:10]), \($age | floor) day\(if ($age | floor) == 1 then "" else "s" end) old\(if $age > 3 then ", STALE: over 3 days" else "" end)"
+        end' 2>&1 || echo "target: compare failed"
+    fi
   fi
 
   gh pr list -R "$repo" --state open --limit 50 \
@@ -111,14 +117,13 @@ project() {
     git -C "$dir" fetch --quiet --prune origin 2>/dev/null || echo "  fetch failed, so the counts below may be stale"
     # Commits on a local branch that no remote branch holds. A branch whose PR merged is
     # skipped, because a squash merge leaves its commits on no remote branch.
-    merged=$(gh pr list -R "$repo" --state merged --limit 200 --json headRefName --jq '.[].headRefName' 2>/dev/null)
     for b in $(git -C "$dir" for-each-ref --format='%(refname:short)' refs/heads); do
       n=$(git -C "$dir" rev-list --count "$b" --not --remotes 2>/dev/null)
       [ "${n:-0}" -gt 0 ] || continue
-      printf '%s\n' "$merged" | grep -qxF "$b" && continue
+      [ -n "$(gh pr list -R "$repo" --state merged --head "$b" --limit 1 --json number --jq '.[].number' 2>/dev/null)" ] && continue
       echo "  unpushed: $b has $n commits on no remote branch"
     done
-    git -C "$dir" worktree list --porcelain | awk '/^worktree /{w=substr($0,10)} /^branch /{print w "\t" substr($0,19)}' |
+    git -C "$dir" worktree list --porcelain | awk '/^worktree /{w=substr($0,10)} /^branch /{print w "\t" substr($0,19)} /^detached/{print w "\tdetached HEAD"}' |
       while IFS=$'\t' read -r wt b; do
         n=$(git -C "$wt" rev-list --count "HEAD..@{u}" 2>/dev/null) && [ "$n" -gt 0 ] && echo "  behind: $b is $n commits behind its remote, in $wt"
         n=$(git -C "$wt" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
@@ -134,21 +139,23 @@ while IFS='|' read -r name aliases repo target links; do
   project "$name" "$repo" "$target" "$links" >"$tmp/p$count" 2>&1 &
 done <"$tmp/projects.txt"
 
-# With a project named, keep only the issues titled "<project>: ...".
+# With a project named, keep only the issues titled "<project>: ...", in any case.
 prefix=""
-[ -n "$want" ] && prefix="$(cut -d'|' -f1 "$tmp/projects.txt"):"
+[ -n "$want" ] && prefix="$(cut -d'|' -f1 "$tmp/projects.txt" | tr '[:upper:]' '[:lower:]'):"
 gh issue list -R "$registry" --label needs-you --state open --limit 100 \
   --json number,title,url,updatedAt,body \
-  --jq 'sort_by(.number) | .[] | select(.title | startswith("'"${prefix//\"/}"'")) | "### #\(.number) \(.title)\n\(.url), updated \(.updatedAt[0:10])\n\(.body)\n"' >"$tmp/issues" 2>&1 &
+  --jq 'sort_by(.number) | .[] | select(.title | ascii_downcase | startswith("'"${prefix//\"/}"'")) | "### #\(.number) \(.title)\n\(.url), updated \(.updatedAt[0:10])\n\(.body)\n"' >"$tmp/issues" 2>&1 &
 wait
 
 echo "machine: $(hostname -s)"
+echo "registry: $registry"
 echo
 for i in $(seq 1 "$count"); do cat "$tmp/p$i"; echo; done
 echo "# needs-you issues in $registry"
 cat "$tmp/issues"
 
 # The state of every PR an issue links to, so a step that is done can be closed with proof.
-grep -oE 'https://github\.com/[^/ )]+/[^/ )]+/pull/[0-9]+' "$tmp/issues" | sort -u | while read -r u; do
-  gh pr view "$u" --json state,mergedAt --jq "\"linked $u: \(.state | ascii_downcase)\(if .mergedAt then \" \(.mergedAt[0:10])\" else \"\" end)\""
+{ grep -oE 'https://github\.com/[^/ )]+/[^/ )]+/pull/[0-9]+' "$tmp/issues" || true; } | sort -u | while read -r u; do
+  gh pr view "$u" --json state,mergedAt --jq "\"linked $u: \(.state | ascii_downcase)\(if .mergedAt then \" \(.mergedAt[0:10])\" else \"\" end)\"" || echo "linked $u: unreadable"
 done
+exit 0
