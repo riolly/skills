@@ -24,7 +24,7 @@ The kinds: an **app** has accounts, saved data or writes; a **content site** is 
 Read the project's `CLAUDE.md` (its `Phase:` line and stack), the scripts in `package.json`, `.github/workflows/`, the deploy setup and how the app reaches its database.
 
 Done when you can state, with evidence, three things:
-- **Kind:** app, content site, toy or other. A toy has no gates; say so and stop. A content site's Day 0 is only the deploy item. For other, apply only D1, D3, D4, P1 and P2, and only where the project has credentials or data.
+- **Kind:** app, content site, toy or other. A toy has no gates; say so and stop. A content site's Day 0 is only the deploy and tab title items, D5 and D7. For other, apply only D1, D3, D4, P1 and P2, and only where the project has credentials or data.
 - **Current phase:** from the `Phase:` line, or judged from real users, real data and CI if there is none.
 - **Target gate:** the next one up. Tell the user which gate you're auditing.
 
