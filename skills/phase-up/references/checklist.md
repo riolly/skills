@@ -4,7 +4,7 @@ Items are stack-agnostic. Each has a **check** (how to prove it) and the **cost*
 
 ## Day 0
 
-Before the first real user. A content site needs only D5.
+Before the first real user. A content site needs only D5 and D7.
 
 **D1. Production credentials never on disk.** Production is reached through one deliberate command that fetches credentials when it runs (for example from the database provider's CLI), never from an `.env*` file.
 - Check: `git ls-files | rg '\.env'` lists only an example file. No `.env*` file in the main checkout or any worktree holds a production host: compare their database hosts with production's, without printing secrets. A dev command that rewrites the env file fixes only the checkouts where it ran. Any hook that copies ignored files into new worktrees is accounted for.
@@ -26,6 +26,9 @@ Before the first real user. A content site needs only D5.
 
 **D6. One smoke test per core flow.** A script that drives a real browser through each flow users depend on. It is how the agent checks its own work, not a regression suite. Each script prints the name of every flow it checks, as its users know it, and what it verified, so "the kiosk check-in" means the same thing to the owner and to an agent.
 - Check: it runs with one command against the local stack, and its output names each flow.
+
+**D7. The tab title names the environment.** The browser tab title starts with the environment when it isn't production, such as `Local · <App>` or `Preview · <App>`, and production shows the plain name. The environment goes first because browsers cut long titles from the end. The build picks it from the host's variables (`VERCEL_ENV`, the Git branch), not the running app.
+- Check: open the local stack and a preview and read both tab titles. Production's has no prefix.
 
 ## v0.x
 
