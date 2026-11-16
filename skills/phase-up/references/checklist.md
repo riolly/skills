@@ -24,8 +24,8 @@ Before the first real user. A content site needs only D5.
 **D5. Preview, deploy, roll back.** Every push gets a preview deploy, a merge deploys production, and the rollback is written down (on Vercel: promote the previous deployment). The rollback note says that it rolls back code, not the schema.
 - Check: the latest push has a preview URL, and the rollback steps are in the repo.
 
-**D6. One smoke test per core flow.** A script that drives a real browser through each flow users depend on. It is how the agent checks its own work, not a regression suite.
-- Check: it runs with one command against the local stack.
+**D6. One smoke test per core flow.** A script that drives a real browser through each flow users depend on. It is how the agent checks its own work, not a regression suite. A flow list in the repo names each flow as its users know it, with its script and the result that proves it works, so "the kiosk check-in" means the same thing to the owner and to an agent.
+- Check: it runs with one command against the local stack, and every script has a row in the flow list.
 
 ## v0.x
 
