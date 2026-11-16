@@ -7,6 +7,17 @@
   },
   "plugins": [
     {
+      "name": "brief",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/brief"
+      ],
+      "description": "Status report on every active project and what waits on you, read fresh from GitHub. Answers decisions by number.",
+      "homepage": "https://github.com/riolly/skills",
+      "repository": "https://github.com/riolly/skills"
+    },
+    {
       "name": "feature-walkthrough",
       "source": "./",
       "strict": false,

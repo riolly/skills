@@ -4,6 +4,7 @@ Agent skills for Claude Code and Codex.
 
 | Skill | What it does |
 | --- | --- |
+| [`brief`](skills/brief/SKILL.md) | Print where every active project stands and what waits on you: one row per project, the decisions to answer by number, the steps only you can take, and flags for stale release branches, unpushed work and a missing `Phase:` line. Reads `projects.yaml` and the `needs-you` issues in `riolly/dotfiles`, and everything else fresh from GitHub. Never merges or pushes. |
 | [`feedback-round`](skills/feedback-round/SKILL.md) | Turn a batch of user feedback into small PRs: number and triage each item, ask about the unclear ones in one message, slice the work into PRs of about 400 lines, and draft the reply for the users. |
 | [`feature-walkthrough`](skills/feature-walkthrough/SKILL.md) | Pick the proof for a user-visible change: nothing, a marked screenshot, a before-and-after pair or a video. Takes screenshots without asking and asks before recording. Videos are real browser workflows with narration or captions, pointer gestures, side-by-side version comparisons and terminal output. |
 | [`phase-up`](skills/phase-up/SKILL.md) | Audit a project against Day 0 or its next phase gate (prototype → product → platform), then set up what's missing in small PRs, protecting real data first. YoungPro is the benchmark and the eval. |
