@@ -1,7 +1,6 @@
 ---
 name: prune
-description: Cut a codebase down. Find unused code, dependencies, comments and docs, and stale or conflicting agent context, then delete or shorten them in small PRs. Run it before improve-codebase-architecture.
-disable-model-invocation: true
+description: Cut a codebase down by deleting or shortening unused code, dependencies, tests, comments, and stale or conflicting docs and agent context, in small PRs. Use when the user says "prune" or asks to remove dead code or reduce lines of code.
 ---
 
 # Prune
