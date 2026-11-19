@@ -73,11 +73,13 @@ base="${OPENAI_BASE_URL:-https://api.openai.com/v1}"
 if [ "${#refs[@]}" -eq 0 ]; then
   jq -n --rawfile prompt "$prompt_file" --arg model "$model" --arg size "$size" \
     --arg quality "$quality" --arg format "$format" \
-    '{model: $model, prompt: $prompt, size: $size, quality: $quality, output_format: $format}' >"$work/body.json"
+    '{model: $model, prompt: $prompt, size: $size, quality: $quality, output_format: $format}
+      + (if $format == "png" then {} else {output_compression: 85} end)' >"$work/body.json"
   request=("$base/images/generations" -H "Content-Type: application/json" --data-binary "@$work/body.json")
 else
   request=("$base/images/edits" --form-string "model=$model" --form-string "prompt=$(cat "$prompt_file")"
     --form-string "size=$size" --form-string "quality=$quality" --form-string "output_format=$format")
+  [ "$format" = png ] || request+=(--form-string "output_compression=85")
   for ref in "${refs[@]}"; do request+=(-F "image[]=@\"$ref\""); done
 fi
 
