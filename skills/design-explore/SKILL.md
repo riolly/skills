@@ -72,6 +72,8 @@ Each sheet, `references/sheet-<direction>.jpg`, shows the direction's name, stan
 
 The owner keeps or drops each candidate, and may move one to another direction, change or reject a direction, or ask for more. Record `kept` or `dropped` with their reason in their words, and rewrite a direction they changed. When they ask for more, return to step 2 and search for what their reasons describe.
 
+The owner may approve one direction while another still changes. Redraw the sheets after every change, and take the approved direction on to step 5 without waiting for the other.
+
 Done when the owner has approved the directions, says the kept set is enough, and no row is still `candidate`.
 
 ## 5. Mockups
@@ -88,17 +90,17 @@ Then generate it:
 
 ```bash
 bash <this skill's folder>/scripts/mockup.sh --prompt mockups/a-home.prompt.md --out mockups/a-home.webp \
-  --ref references/r03.webp --ref references/r07.webp
+  --ref references/r03-linear.jpg --ref references/r07-stripe.jpg
 ```
 
-`--help` lists the size, quality and model options. Exit code 3 means the script found no OpenAI API key: ask the owner for one and stop until they give it.
+Attach only the references that serve this screen. `--size` defaults to a desktop screen, so pass `1024x1536` for a phone or a tablet in portrait. `--help` lists the quality and model options. Exit code 3 means the script found no OpenAI API key: ask the owner for one and stop until they give it.
 
 Generate each direction's **key screen** first, the screen that carries most of the design. Tell the owner how many images the round will make before you run it. Show the key screens side by side. The owner picks one, asks for a redo, drops a direction, or mixes two ("A's layout with B's type"). A mix becomes a new direction with its own key screen. Then generate the remaining screens for the directions still alive, with the picked key mockup as the first `--ref` so the screens match.
 
 | id | direction | screen | file | status | reason |
 | --- | --- | --- | --- | --- | --- |
 
-`status` is `picked`, `dropped` or `redone`.
+`file` embeds the image. `status` starts as `candidate` and ends as `picked`, `dropped` or `redone`, with the owner's reason. Look at each mockup before you show it, and redo one whose copy or layout misses the prompt.
 
 Done when every screen in the scale has one picked mockup, or the owner has ended the exploration, and every mockup has a row.
 

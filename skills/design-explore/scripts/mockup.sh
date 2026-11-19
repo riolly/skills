@@ -10,7 +10,7 @@ Usage: mockup.sh --prompt <file> --out <file> [--ref <image>]... [options]
   --prompt <file>   Text of the prompt.
   --out <file>      Where to write the image. The extension picks the format: .webp, .png or .jpg.
   --ref <image>     A reference image the prompt refers to by position. Repeat for more, in order.
-  --size <WxH>      Default 1536x1024 (desktop). Use 1024x1536 for a phone screen.
+  --size <WxH>      Default 1536x1024 (desktop). Use 1024x1536 for a phone or a portrait tablet.
                     Both sides are multiples of 16, and neither is longer than 3840.
   --quality <q>     low, medium (default), high, xhigh or max. Each step up costs more.
   --model <id>      Default gpt-image-2.6-flare, or $DESIGN_EXPLORE_MODEL.
