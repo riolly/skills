@@ -35,10 +35,10 @@ Open each candidate's live page and take your own screenshot in a 1440 by 900 wi
 
 A candidate earns a row when you can name one visible thing worth taking from it. `take` says what that thing is. `part` says where it is: `whole page` when the reference is for the page's overall layout, type or colour, or else the one element, such as `the row of numbers above the chart`. When the thing is motion, say so in `take`, because the link is then the only evidence. Prefer candidates that differ visibly from each other and from the project's current screens.
 
-| id | screenshot | link | source | part | take | direction | status | reason |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | screenshot | link | source | part | box | take | direction | status | reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
-`screenshot` embeds the image. `source` is how you found it: owner, earlier exploration, agent pick, search, a gallery's name or ui-radar. `status` starts as `candidate`. `direction` and `reason` stay empty until steps 3 and 4. Under the table, write one line with how many pages you passed over and why.
+`screenshot` embeds the image, and `link` is `[Product](url)`. `box` is the element's corners on the screenshot in pixels, as `left,top,right,bottom`, and stays empty for a whole page. `source` is how you found it: owner, earlier exploration, agent pick, search, a gallery's name or ui-radar. `status` starts as `candidate`. `direction` and `reason` stay empty until steps 3 and 4. Under the table, write one line with how many pages you passed over and why.
 
 Done when every candidate has a screenshot you have looked at and a row, and the pages passed over are counted.
 
@@ -46,18 +46,29 @@ Done when every candidate has a screenshot you have looked at and a row, and the
 
 Propose the directions the scale asks for, lettered A, B and C, by grouping the candidates. Write for each:
 
-- a name of two or three words
-- its stance on layout, type, colour and density, in two or three sentences
-- **the one bold thing** a viewer would remember
-- its references, by id, with what each one gives it and the screen it serves
+```markdown
+### A. Quiet print
 
-Set each row's `direction`. A candidate that fits no direction stays in the table with `direction` empty. Two directions differ enough when their mockups could not be confused at thumbnail size. When the candidates only support one direction, return to step 2 for the other.
+Stance: its layout, type, colour and density, in two or three sentences.
 
-Done when every direction in the scale has all four parts and at least two references.
+The one bold thing: what a viewer would remember.
+
+- r01 gives the half-empty opening page, for the reading page.
+```
+
+The name has two or three words, and the list has one line per reference with what it gives and the screen it serves. Set each row's `direction` to its letter. A candidate that helps every direction, such as an emblem or an icon style, gets `shared`. Two directions differ enough when their mockups could not be confused at thumbnail size. When the candidates only support one direction, return to step 2 for the other.
+
+Done when every direction in the scale has all four parts and at least two references, and every row has a `direction`.
 
 ## 4. Curate
 
-Show the owner one **contact sheet**, saved as `references/contact-sheet.jpg`: a section per direction with its name, stance and one bold thing, then its candidates in a grid, then the candidates with no direction. Each candidate shows its id, product, `part` and `take`, and a `part` that is an element is outlined on the screenshot, cropped closer when the element would be too small to see. Give the questions the brief left open in the same message, each with your recommendation.
+Draw the **contact sheets**, one image per direction and one for the shared references:
+
+```bash
+uv run <this skill's folder>/scripts/sheet.py design/<slug>/exploration.md
+```
+
+Each sheet, `references/sheet-<direction>.jpg`, shows the direction's name, stance and one bold thing, then its candidates with their id, product, `part` and `take`. A `box` is outlined, and the screenshot is cropped closer when the element is small. Look at every sheet and fix a `box` that misses its element. Show the owner the sheets in order, and give the questions the brief left open in the same message, each with your recommendation.
 
 The owner keeps or drops each candidate, and may move one to another direction, change or reject a direction, or ask for more. Record `kept` or `dropped` with their reason in their words, and rewrite a direction they changed. When they ask for more, return to step 2 and search for what their reasons describe.
 
@@ -70,7 +81,7 @@ Write one prompt file per mockup, `mockups/<direction>-<screen>.prompt.md`, hold
 - the screen and its viewport
 - the copy and data from the brief, word for word
 - the direction's stance and its one bold thing
-- what to take from each attached reference, named by position and by its `part` ("from image 1, only the row of numbers above the chart")
+- what to take from each attached reference, the direction's kept ones and the kept shared ones, named by position and by its `part` ("from image 1, only the row of numbers above the chart")
 - a line that keeps the references' brand names, logos and photos out
 
 Then generate it:
