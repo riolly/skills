@@ -14,33 +14,35 @@ An exploration lives in `design/<slug>/` in the project and is committed with th
 Write the brief at the top of `exploration.md`:
 
 - the screens or components, and the one decision or action each must support
-- the real copy and labels that go on them, word for word, with invented sample values wherever the real data is personal or secret, because step 5 sends this text to an outside service
+- the viewport of each screen, and the state it is shown in when it changes by role or by data
+- the real copy and labels that go on them, word for word, with invented sample values wherever the real data is personal or secret, because step 5 sends this text to an outside service. A long page gives its headings and its first screen of copy.
 - what is fixed (brand, design system, content) and what is open
+- a screenshot of each screen as it looks today, when it exists, saved as `references/current-<screen>.jpg`
 
-Then the **scale**: how many directions (one to three) and which screens each direction gets. The owner sets the scale. Ask for whatever part they haven't given, in one message, with your recommendation.
+Then the **scale**: how many directions (one to three) and which screens each direction gets. The owner sets the scale and what is fixed. Ask for whatever part they haven't given, in one message, with your recommendation.
 
-Done when the brief names every screen with its real content, and the owner has set the directions and the screens.
+Done when the brief names every screen with its viewport and real content, and the owner has set the directions, the screens and what is fixed.
 
 ## 2. Gather
 
-Collect about four candidates per direction, and at least five. Take them from these sources, in order:
+Collect about four candidates for each direction in the scale, at least five in all, and some for every screen. Take them from these sources, in order:
 
 1. What the owner gave: links, screenshots and products they named.
-2. References kept in the project's earlier explorations.
-3. Real products that do the same job, and curated galleries such as Godly, Land-book, Mobbin and Awwwards, found by web search. The free search in `ui-radar` returns product names without screenshots, so use it for names only.
+2. References the project already kept, in earlier explorations or in its design docs.
+3. Real products you know do the same job well, and others found by web search. Galleries such as Godly and Land-book hold marketing pages only, and Mobbin needs a login. The free search in `ui-radar` returns product names without screenshots, so use it for names only.
 
-Open each candidate's live page and take your own screenshot at 1440 px wide, or 390 px for a phone screen, of the part that matters to the job. Save it in `references/` as JPEG or WebP when the tool allows. Look at the screenshot. A candidate earns a row when you can name one visible thing worth taking from it: a layout, a type pairing, a use of colour, a density or a detail. Prefer candidates that differ visibly from each other and from what the project already looks like.
+Open each candidate's live page and take your own screenshot of the part that matters to the job, in a 1440 by 900 window, or 390 by 844 for a phone screen. Headless Chrome's `--screenshot` with `--window-size` is enough. Save it as `references/r<nn>-<product>.jpg`. Look at the screenshot. Retake or pass over one that shows a cookie banner, a login wall or a page still loading. A candidate earns a row when you can name one visible thing worth taking from it: a layout, a type pairing, a use of colour, a density or a detail. When the thing is motion, say so in `take`, because the link is then the only evidence. Prefer candidates that differ visibly from each other and from the project's current screens.
 
 | id | screenshot | link | source | take | status | reason |
 | --- | --- | --- | --- | --- | --- | --- |
 
-`source` is how you found it: owner, earlier exploration, the gallery's name, search or ui-radar. `status` starts as `candidate`.
+`screenshot` embeds the image. `source` is how you found it: owner, earlier exploration, agent pick, search, a gallery's name or ui-radar. `status` starts as `candidate`, and `reason` stays empty until step 3. Under the table, write one line with how many pages you passed over and why.
 
-Done when every candidate has a screenshot you have looked at and a full row.
+Done when every candidate has a screenshot you have looked at and a row, and the pages passed over are counted.
 
 ## 3. Curate
 
-Show the owner every candidate with its screenshot, link and `take`. The owner keeps some, drops some, and may ask for more. Record `kept` or `dropped` with their reason in their words. When they ask for more, return to step 2 and search for what their reasons describe.
+Show the owner one **contact sheet**: an image of every candidate in a grid, each with its id, product and `take`, saved as `references/contact-sheet.jpg`. Give the questions the brief left open in the same message, each with your recommendation. The owner keeps some candidates, drops some, and may ask for more. Record `kept` or `dropped` with their reason in their words. When they ask for more, return to step 2 and search for what their reasons describe.
 
 Done when the owner says the kept set is enough and no row is still `candidate`.
 
