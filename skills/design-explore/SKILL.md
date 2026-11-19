@@ -31,7 +31,7 @@ Collect about four candidates for each direction in the scale, at least five in 
 2. References the project already kept, in earlier explorations or in its design docs.
 3. Real products you know do the same job well, and others found by web search. Galleries such as Godly and Land-book hold marketing pages only, and Mobbin needs a login. The free search in `ui-radar` returns product names without screenshots, so use it for names only.
 
-Open each candidate's live page and take your own screenshot in a 1440 by 900 window, or 390 by 844 for a phone screen. Headless Chrome's `--screenshot` with `--window-size` is enough. Save it as `references/r<nn>-<product>.jpg`. Look at the screenshot. Retake or pass over one that shows a cookie banner, a login wall or a page still loading.
+Open each candidate's live page and take your own screenshot in a 1440 by 900 window, or 390 by 844 for a phone screen. Headless Chrome's `--screenshot` with `--window-size` is enough. Save it as `references/r<nn>-<product>.jpg`. Look at the screenshot. Close a cookie banner and retake. Pass over a login wall or a page that never finishes loading.
 
 A candidate earns a row when you can name one visible thing worth taking from it. `take` says what that thing is. `part` says where it is: `whole page` when the reference is for the page's overall layout, type or colour, or else the one element, such as `the row of numbers above the chart`. When the thing is motion, say so in `take`, because the link is then the only evidence. Prefer candidates that differ visibly from each other and from the project's current screens.
 
@@ -47,17 +47,17 @@ Done when every candidate has a screenshot you have looked at and a row, and the
 Propose the directions the scale asks for, lettered A, B and C, by grouping the candidates. Write for each:
 
 - a name of two or three words
-- its stance on layout, type, colour and density
+- its stance on layout, type, colour and density, in two or three sentences
 - **the one bold thing** a viewer would remember
-- its references, by id, with what each one gives it
+- its references, by id, with what each one gives it and the screen it serves
 
-Set each row's `direction`. A candidate that fits no direction stays in the table with `direction` empty. Two directions differ enough when their thumbnails can't be confused. When the candidates only support one direction, return to step 2 for the other.
+Set each row's `direction`. A candidate that fits no direction stays in the table with `direction` empty. Two directions differ enough when their mockups could not be confused at thumbnail size. When the candidates only support one direction, return to step 2 for the other.
 
 Done when every direction in the scale has all four parts and at least two references.
 
 ## 4. Curate
 
-Show the owner one **contact sheet**, saved as `references/contact-sheet.jpg`: a section per direction with its name, stance and one bold thing, then its candidates in a grid, then the candidates with no direction. Each candidate shows its id, product, `part` and `take`, and a `part` that is an element is outlined on the screenshot. Give the questions the brief left open in the same message, each with your recommendation.
+Show the owner one **contact sheet**, saved as `references/contact-sheet.jpg`: a section per direction with its name, stance and one bold thing, then its candidates in a grid, then the candidates with no direction. Each candidate shows its id, product, `part` and `take`, and a `part` that is an element is outlined on the screenshot, cropped closer when the element would be too small to see. Give the questions the brief left open in the same message, each with your recommendation.
 
 The owner keeps or drops each candidate, and may move one to another direction, change or reject a direction, or ask for more. Record `kept` or `dropped` with their reason in their words, and rewrite a direction they changed. When they ask for more, return to step 2 and search for what their reasons describe.
 
