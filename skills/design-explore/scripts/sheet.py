@@ -77,7 +77,9 @@ def read_directions(markdown):
     for block in re.split(r"^### ", section.group(1) if section else "", flags=re.M)[1:]:
         heading, _, body = block.partition("\n")
         letter = heading.split(".")[0].strip().lower()
-        paragraphs = [re.sub(r"[*`]", "", line) for line in body.splitlines() if line.strip() and not line.lstrip().startswith(("-", "|"))]
+        paragraphs = [re.sub(r"[*`]", "", line) for line in body.splitlines() if line.startswith(("Stance:", "The one bold thing:"))]
+        if len(paragraphs) != 2:
+            sys.exit(f"sheet.py: '### {heading.strip()}' needs one 'Stance:' line and one 'The one bold thing:' line")
         directions[letter] = (heading.strip(), paragraphs)
     return directions
 
