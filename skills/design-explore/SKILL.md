@@ -89,6 +89,7 @@ Write one prompt file per mockup, `mockups/<direction>-<screen>.prompt.md`, hold
 Then generate it:
 
 ```bash
+cd design/<slug>
 bash <this skill's folder>/scripts/mockup.sh --prompt mockups/a-home.prompt.md --out mockups/a-home.webp \
   --ref references/r03-linear.jpg --ref references/r07-stripe.jpg
 ```
@@ -100,7 +101,7 @@ Generate each direction's **key screen** first, the screen that carries most of 
 | id | direction | screen | file | status | reason |
 | --- | --- | --- | --- | --- | --- |
 
-`file` embeds the image. `status` starts as `candidate` and ends as `picked`, `dropped` or `redone`, with the owner's reason. Look at each mockup before you show it, and redo one whose copy or layout misses the prompt.
+`file` embeds the image. A redo gets a new file, such as `a-home-2.webp`, and its own row, so the earlier mockup stays. `status` starts as `candidate` and ends as `picked`, `dropped` or `redone`, with the owner's reason. Look at each mockup before you show it, and redo one whose copy or layout misses the prompt.
 
 Done when every screen in the scale has one picked mockup, or the owner has ended the exploration, and every mockup has a row.
 

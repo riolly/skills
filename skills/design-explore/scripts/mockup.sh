@@ -66,6 +66,9 @@ if [ -z "$key" ] && [ -r "$key_file" ]; then key="$(tr -d '[:space:]' <"$key_fil
 
 command -v jq >/dev/null || die "jq is not installed" 2
 
+mkdir -p "$(dirname "$out")" 2>/dev/null && [ -w "$(dirname "$out")" ] ||
+  die "can't write to the folder of $out" 2
+
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 base="${OPENAI_BASE_URL:-https://api.openai.com/v1}"
@@ -80,7 +83,14 @@ else
   request=("$base/images/edits" --form-string "model=$model" --form-string "prompt=$(cat "$prompt_file")"
     --form-string "size=$size" --form-string "quality=$quality" --form-string "output_format=$format")
   [ "$format" = png ] || request+=(--form-string "output_compression=85")
-  for ref in "${refs[@]}"; do request+=(-F "image[]=@\"$ref\""); done
+  for ref in "${refs[@]}"; do
+    case "$ref" in
+      *.webp) type=image/webp ;;
+      *.png) type=image/png ;;
+      *) type=image/jpeg ;;
+    esac
+    request+=(-F "image[]=@\"$ref\";type=$type")
+  done
 fi
 
 status="$(printf 'header = "Authorization: Bearer %s"\n' "$key" |
@@ -92,10 +102,13 @@ if [ "$status" != 200 ]; then
   die "the API answered $status: ${message:-$(head -c 300 "$work/response.json")}"
 fi
 
-mkdir -p "$(dirname "$out")"
+keep_answer() {
+  cp "$work/response.json" "$out.response.json" 2>/dev/null || cp "$work/response.json" "$HOME/design-explore-response.json"
+  die "$1. The paid answer is kept as $out.response.json, or in your home folder"
+}
 jq -er '.data[0].b64_json' "$work/response.json" | base64 --decode >"$work/image" ||
-  die "the API answered 200 without an image"
-mv "$work/image" "$out"
+  keep_answer "the API answered 200 without an image this script can read"
+mv "$work/image" "$out" || keep_answer "could not write $out"
 
 printf 'wrote %s (%s, %s, %s quality, %s reference images)\n' "$out" "$model" "$size" "$quality" "${#refs[@]}"
 jq -r '.usage // empty | "tokens: \(.total_tokens // "?") total, \(.output_tokens // "?") output"' "$work/response.json"
