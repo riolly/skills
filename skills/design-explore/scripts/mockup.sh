@@ -54,8 +54,18 @@ case "$out" in
   *) die "--out must end in .webp, .png or .jpg" 2 ;;
 esac
 
+image_type() {
+  case "$(printf '%s' "${1##*.}" | tr '[:upper:]' '[:lower:]')" in
+    webp) echo image/webp ;;
+    png) echo image/png ;;
+    jpg|jpeg) echo image/jpeg ;;
+    *) return 1 ;;
+  esac
+}
+
 for ref in ${refs[@]+"${refs[@]}"}; do
   [ -f "$ref" ] || die "the reference image $ref does not exist" 2
+  image_type "$ref" >/dev/null || die "the reference image $ref must be a .jpg, .png or .webp file" 2
   case "$ref" in *'"'*|*\\*) die "rename $ref: a reference path can't hold a quote or a backslash" 2 ;; esac
 done
 
@@ -64,8 +74,9 @@ key_file="${XDG_CONFIG_HOME:-$HOME/.config}/design-explore/openai-key"
 if [ -z "$key" ] && [ -r "$key_file" ]; then key="$(tr -d '[:space:]' <"$key_file")"; fi
 [ -n "$key" ] || die "no OpenAI API key. Set OPENAI_API_KEY, or save the key in $key_file" 3
 
-command -v jq >/dev/null || die "jq is not installed" 2
+command -v jq >/dev/null || die "jq is not installed"
 
+[ ! -d "$out" ] || die "$out is a folder" 2
 mkdir -p "$(dirname "$out")" 2>/dev/null && [ -w "$(dirname "$out")" ] ||
   die "can't write to the folder of $out" 2
 
@@ -84,12 +95,7 @@ else
     --form-string "size=$size" --form-string "quality=$quality" --form-string "output_format=$format")
   [ "$format" = png ] || request+=(--form-string "output_compression=85")
   for ref in "${refs[@]}"; do
-    case "$ref" in
-      *.webp) type=image/webp ;;
-      *.png) type=image/png ;;
-      *) type=image/jpeg ;;
-    esac
-    request+=(-F "image[]=@\"$ref\";type=$type")
+    request+=(-F "image[]=@\"$ref\";type=$(image_type "$ref")")
   done
 fi
 
@@ -103,8 +109,14 @@ if [ "$status" != 200 ]; then
 fi
 
 keep_answer() {
-  cp "$work/response.json" "$out.response.json" 2>/dev/null || cp "$work/response.json" "$HOME/design-explore-response.json"
-  die "$1. The paid answer is kept as $out.response.json, or in your home folder"
+  local kept
+  for kept in "$out.response.json" "$HOME/design-explore-response-$(date +%Y%m%d-%H%M%S).json"; do
+    if cp "$work/response.json" "$kept" 2>/dev/null; then
+      die "$1. The paid answer is kept as $kept, with the image under .data[0].b64_json"
+    fi
+  done
+  trap - EXIT
+  die "$1. The paid answer could not be copied, so it is left in $work/response.json"
 }
 jq -er '.data[0].b64_json' "$work/response.json" | base64 --decode >"$work/image" ||
   keep_answer "the API answered 200 without an image this script can read"

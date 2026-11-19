@@ -21,8 +21,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, MARGIN, GAP, COLUMNS = 1600, 40, 32, 2
 CELL = (WIDTH - 2 * MARGIN - GAP * (COLUMNS - 1)) // COLUMNS
-THUMB_MAX_HEIGHT, PORTRAIT_HEIGHT, ROW_ROOM = 560, 760, 1300
-COLUMNS_NEEDED = ("id", "screenshot", "link", "source", "part", "take", "direction")
+THUMB_MAX_HEIGHT, PORTRAIT_HEIGHT, PHONE_RATIO, ROW_ROOM = 560, 760, 2.4, 1300
+COLUMNS_NEEDED = ("id", "screenshot", "link", "source", "part", "box", "take", "direction")
 INK, MUTED, PINK, PAPER, LINE = (20, 20, 20), (105, 105, 105), (214, 0, 120), (255, 255, 255), (215, 215, 215)
 
 
@@ -103,7 +103,8 @@ def thumbnail(path, box):
     if box:
         x0, x1 = sorted((box[0], box[2]))
         y0, y1 = sorted((box[1], box[3]))
-        ImageDraw.Draw(image).rectangle((x0 - 4, y0 - 4, x1 + 4, y1 + 4), outline=PINK, width=max(5, image.width // 240))
+        outline = (max(x0 - 4, 0), max(y0 - 4, 0), min(x1 + 4, image.width - 1), min(y1 + 4, image.height - 1))
+        ImageDraw.Draw(image).rectangle(outline, outline=PINK, width=max(5, image.width // 240))
         middle = (y0 + y1) / 2 / image.height
         if (x1 - x0) * (y1 - y0) < 0.12 * image.width * image.height:
             width = min(image.width, max((x1 - x0) * 2.4, image.width * 0.45))
@@ -112,8 +113,13 @@ def thumbnail(path, box):
             top = min(max((y0 + y1) / 2 - height / 2, 0), image.height - height)
             image = image.crop((round(left), round(top), round(left + width), round(top + height)))
             middle = None
+    if middle is not None and image.height > PHONE_RATIO * image.width:
+        height = min(image.height, max(y1 - y0 + 80, image.width * 0.75))
+        top = min(max((y0 + y1) / 2 - height / 2, 0), image.height - height)
+        image = image.crop((0, round(top), image.width, round(top + height)))
+        middle = None
     scale = CELL / image.width
-    if image.height > 1.2 * image.width:
+    if 1.2 * image.width < image.height <= PHONE_RATIO * image.width:
         scale = min(scale, PORTRAIT_HEIGHT / image.height)
     image = image.resize((round(image.width * scale), round(image.height * scale)), Image.LANCZOS)
     if image.height > PORTRAIT_HEIGHT:
@@ -132,7 +138,7 @@ def draw_sheet(folder, title, paragraphs, rows, out):
         bottom = y
         for column, row in enumerate(rows[start : start + COLUMNS]):
             x = MARGIN + column * (CELL + GAP)
-            numbers = [int(n) for n in re.findall(r"\d+", row["box"])]
+            numbers = [int(n) for n in re.findall(r"-?\d+", row["box"])]
             image = thumbnail(screenshot_path(folder, row), numbers if len(numbers) == 4 else None)
             canvas.image.paste(image, (x, y))
             canvas.draw.rectangle((x, y, x + image.width - 1, y + image.height - 1), outline=LINE)
@@ -155,14 +161,21 @@ def main():
     groups = sorted({row["direction"].strip().lower() for row in rows})
     if "" in groups:
         sys.exit("sheet.py: every row needs a direction: a letter, or shared")
-    for stale in (source.parent / "references").glob("sheet-*.jpg"):
-        stale.unlink()
     for group in groups:
-        heading, paragraphs = directions.get(group, ("Shared references", ["These help every direction."]))
         if group != "shared" and group not in directions:
             sys.exit(f"sheet.py: direction {group.upper()} has rows but no '### {group.upper()}. Name' heading under '## Directions'")
+    for row in rows:
+        screenshot_path(source.parent, row)
+    folder = source.parent / "references"
+    folder.mkdir(exist_ok=True)
+    for stale in folder.glob("sheet-*.jpg"):
+        stale.unlink()
+    if not rows:
+        print("sheet.py: no rows are left to draw, so there are no sheets")
+    for group in groups:
+        heading, paragraphs = directions.get(group, ("Shared references", ["These help every direction."]))
         members = [row for row in rows if row["direction"].strip().lower() == group]
-        draw_sheet(source.parent, heading, paragraphs, members, source.parent / "references" / f"sheet-{group}.jpg")
+        draw_sheet(source.parent, heading, paragraphs, members, folder / f"sheet-{group}.jpg")
 
 
 if __name__ == "__main__":
