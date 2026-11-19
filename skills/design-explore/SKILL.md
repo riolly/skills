@@ -5,7 +5,7 @@ description: Explore a new design from real references and generated image mocku
 
 # Design explore
 
-An **exploration** takes one design job from references to a picked mockup, before any UI code. A **reference** is a screenshot of a real, shipped interface. A **direction** is a named group of kept references with one stance. A **mockup** is a generated image of one screen in one direction, made for choosing. The **owner** curates and picks, and you gather, group and generate.
+An **exploration** takes one design job from references to a picked mockup, before any UI code. A **reference** is a screenshot of a real, shipped interface. A **direction** is a named group of references with one stance. A **mockup** is a generated image of one screen in one direction, made for choosing. The **owner** curates and picks, and you gather, group and generate.
 
 An exploration lives in `design/<slug>/` in the project and is committed with the work: `exploration.md` holds the brief and every table below, next to `references/` and `mockups/`. Every row stays. A dropped row keeps the owner's reason, because the tables are how the owner finds the step where an exploration went wrong.
 
@@ -31,33 +31,37 @@ Collect about four candidates for each direction in the scale, at least five in 
 2. References the project already kept, in earlier explorations or in its design docs.
 3. Real products you know do the same job well, and others found by web search. Galleries such as Godly and Land-book hold marketing pages only, and Mobbin needs a login. The free search in `ui-radar` returns product names without screenshots, so use it for names only.
 
-Open each candidate's live page and take your own screenshot of the part that matters to the job, in a 1440 by 900 window, or 390 by 844 for a phone screen. Headless Chrome's `--screenshot` with `--window-size` is enough. Save it as `references/r<nn>-<product>.jpg`. Look at the screenshot. Retake or pass over one that shows a cookie banner, a login wall or a page still loading. A candidate earns a row when you can name one visible thing worth taking from it: a layout, a type pairing, a use of colour, a density or a detail. When the thing is motion, say so in `take`, because the link is then the only evidence. Prefer candidates that differ visibly from each other and from the project's current screens.
+Open each candidate's live page and take your own screenshot in a 1440 by 900 window, or 390 by 844 for a phone screen. Headless Chrome's `--screenshot` with `--window-size` is enough. Save it as `references/r<nn>-<product>.jpg`. Look at the screenshot. Retake or pass over one that shows a cookie banner, a login wall or a page still loading.
 
-| id | screenshot | link | source | take | status | reason |
-| --- | --- | --- | --- | --- | --- | --- |
+A candidate earns a row when you can name one visible thing worth taking from it. `take` says what that thing is. `part` says where it is: `whole page` when the reference is for the page's overall layout, type or colour, or else the one element, such as `the row of numbers above the chart`. When the thing is motion, say so in `take`, because the link is then the only evidence. Prefer candidates that differ visibly from each other and from the project's current screens.
 
-`screenshot` embeds the image. `source` is how you found it: owner, earlier exploration, agent pick, search, a gallery's name or ui-radar. `status` starts as `candidate`, and `reason` stays empty until step 3. Under the table, write one line with how many pages you passed over and why.
+| id | screenshot | link | source | part | take | direction | status | reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+`screenshot` embeds the image. `source` is how you found it: owner, earlier exploration, agent pick, search, a gallery's name or ui-radar. `status` starts as `candidate`. `direction` and `reason` stay empty until steps 3 and 4. Under the table, write one line with how many pages you passed over and why.
 
 Done when every candidate has a screenshot you have looked at and a row, and the pages passed over are counted.
 
-## 3. Curate
+## 3. Directions
 
-Show the owner one **contact sheet**: an image of every candidate in a grid, each with its id, product and `take`, saved as `references/contact-sheet.jpg`. Give the questions the brief left open in the same message, each with your recommendation. The owner keeps some candidates, drops some, and may ask for more. Record `kept` or `dropped` with their reason in their words. When they ask for more, return to step 2 and search for what their reasons describe.
-
-Done when the owner says the kept set is enough and no row is still `candidate`.
-
-## 4. Directions
-
-Group the kept references into the directions the owner asked for, lettered A, B and C. Write for each:
+Propose the directions the scale asks for, lettered A, B and C, by grouping the candidates. Write for each:
 
 - a name of two or three words
-- the references it draws on, and what it takes from each
 - its stance on layout, type, colour and density
 - **the one bold thing** a viewer would remember
+- its references, by id, with what each one gives it
 
-Two directions differ enough when their thumbnails can't be confused. With more than one direction, show the owner this list and wait for their approval, because every mockup costs money.
+Set each row's `direction`. A candidate that fits no direction stays in the table with `direction` empty. Two directions differ enough when their thumbnails can't be confused. When the candidates only support one direction, return to step 2 for the other.
 
-Done when each direction has all four parts, and the owner has approved the list when there is more than one.
+Done when every direction in the scale has all four parts and at least two references.
+
+## 4. Curate
+
+Show the owner one **contact sheet**, saved as `references/contact-sheet.jpg`: a section per direction with its name, stance and one bold thing, then its candidates in a grid, then the candidates with no direction. Each candidate shows its id, product, `part` and `take`, and a `part` that is an element is outlined on the screenshot. Give the questions the brief left open in the same message, each with your recommendation.
+
+The owner keeps or drops each candidate, and may move one to another direction, change or reject a direction, or ask for more. Record `kept` or `dropped` with their reason in their words, and rewrite a direction they changed. When they ask for more, return to step 2 and search for what their reasons describe.
+
+Done when the owner has approved the directions, says the kept set is enough, and no row is still `candidate`.
 
 ## 5. Mockups
 
@@ -66,7 +70,7 @@ Write one prompt file per mockup, `mockups/<direction>-<screen>.prompt.md`, hold
 - the screen and its viewport
 - the copy and data from the brief, word for word
 - the direction's stance and its one bold thing
-- what to take from each attached reference, named by position ("from image 1, the column layout")
+- what to take from each attached reference, named by position and by its `part` ("from image 1, only the row of numbers above the chart")
 - a line that keeps the references' brand names, logos and photos out
 
 Then generate it:
