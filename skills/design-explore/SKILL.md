@@ -14,7 +14,7 @@ An exploration lives in `design/<slug>/` in the project and is committed with th
 Write the brief at the top of `exploration.md`:
 
 - the screens or components, and the one decision or action each must support
-- the real copy and data that go on them, word for word
+- the real copy and labels that go on them, word for word, with invented sample values wherever the real data is personal or secret, because step 5 sends this text to an outside service
 - what is fixed (brand, design system, content) and what is open
 
 Then the **scale**: how many directions (one to three) and which screens each direction gets. The owner sets the scale. Ask for whatever part they haven't given, in one message, with your recommendation.
