@@ -7,6 +7,8 @@ description: Explore a new design from real references and generated image mocku
 
 An **exploration** takes one design job from references to a picked mockup, before any UI code. A **reference** is a screenshot of a real, shipped interface. A **direction** is a named group of references with one stance. A **mockup** is a generated image of one screen in one direction, made for choosing. The **owner** curates and picks, and you gather, group and generate.
 
+Run an exploration in a thread of its own, because every screenshot and mockup you look at stays in the thread. When the request comes in a thread that already holds other work, write the brief there and offer to continue in a new thread.
+
 An exploration lives in `design/<slug>/` in the project and is committed with the work: `exploration.md` holds the brief and every table below, next to `references/` and `mockups/`. Every row stays. Under **What the owner said**, keep each round of the owner's replies in their words with what you changed for it. A dropped row keeps the owner's reason, because the tables are how the owner finds the step where an exploration went wrong.
 
 ## 1. Scope
@@ -24,6 +26,8 @@ Then the **scale**: how many directions (one to three) and which screens each di
 Done when the brief names every screen with its viewport and real content, and the owner has set the directions, the screens and what is fixed.
 
 ## 2. Gather
+
+Hand steps 2 and 3 to one subagent when you can start one, so the screenshots stay out of this thread. Give it the path of this file, the path of `exploration.md` with its brief, and the owner's own references. It writes the table and the directions and draws the sheets of step 4, and it returns only how many candidates each direction has and the pages it passed over. You then look at the sheets, not at each screenshot.
 
 Collect about four candidates for each direction in the scale, at least five in all, and some for every screen. Take them from these sources, in order:
 
