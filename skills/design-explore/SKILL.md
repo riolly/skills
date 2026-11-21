@@ -7,7 +7,7 @@ description: Explore a new design from real references and generated image mocku
 
 An **exploration** takes one design job from references to a picked mockup, before any UI code. A **reference** is a screenshot of a real, shipped interface. A **direction** is a named group of references with one stance. A **mockup** is a generated image of one screen in one direction, made for choosing. The **owner** curates and picks, and you gather, group and generate.
 
-An exploration lives in `design/<slug>/` in the project and is committed with the work: `exploration.md` holds the brief and every table below, next to `references/` and `mockups/`. Every row stays. A dropped row keeps the owner's reason, because the tables are how the owner finds the step where an exploration went wrong.
+An exploration lives in `design/<slug>/` in the project and is committed with the work: `exploration.md` holds the brief and every table below, next to `references/` and `mockups/`. Every row stays. Under **What the owner said**, keep each round of the owner's replies in their words with what you changed for it. A dropped row keeps the owner's reason, because the tables are how the owner finds the step where an exploration went wrong.
 
 ## 1. Scope
 
@@ -19,7 +19,7 @@ Write the brief at the top of `exploration.md`:
 - what is fixed (brand, design system, content) and what is open
 - a screenshot of each screen as it looks today, when it exists, saved as `references/current-<screen>.jpg`
 
-Then the **scale**: how many directions (one to three) and which screens each direction gets. The owner sets the scale and what is fixed. Ask for whatever part they haven't given, in one message, with your recommendation.
+Then the **scale**: how many directions (one to three) and which screens each direction gets. The owner sets the scale and what is fixed. Ask for whatever part they haven't given, in one message, with your recommendation. Ask in that message for what only the owner has: products and images they already like, an earlier try of their own in any repo, and the content the brief can't settle, such as which items the screen lists. Wait for the answer before step 2, because a changed brief sends the whole gathering round back.
 
 Done when the brief names every screen with its viewport and real content, and the owner has set the directions, the screens and what is fixed.
 
@@ -78,7 +78,7 @@ A direction is done when the owner has approved it, says its kept set is enough,
 
 ## 5. Mockups
 
-Write one prompt file per mockup, `mockups/<direction>-<screen>.prompt.md`, holding:
+Write one prompt file per mockup, `mockups/<direction>-<screen>.prompt.md`, and a new one for every redo, holding:
 
 - the screen and its viewport
 - the copy and data from the brief, word for word
@@ -96,12 +96,14 @@ bash <this skill's folder>/scripts/mockup.sh \
 
 Attach only the references that serve this screen. `--size` defaults to a desktop screen, so pass `1024x1536` for a phone or a tablet in portrait. `--help` lists the quality and model options. Exit code 3 means the script found no OpenAI API key: ask the owner for one and stop until they give it.
 
-Generate each direction's **key screen** first, the screen that carries most of the design. Tell the owner how many images the round will make before you run it. Show the key screens side by side. The owner picks one, asks for a redo, drops a direction, or mixes two ("A's layout with B's type"). A mix becomes a new direction with its own key screen. Then generate the remaining screens for the picked direction only, with its key mockup as the first `--ref` so the screens match.
+Generate each direction's **key screen** first, the screen that carries most of the design. Tell the owner how many images the round will make before you run it. You may redo an image once on your own when it misses the prompt, and you say so when you show it. Show the key screens side by side. The owner picks one, asks for a redo, drops a direction, or mixes two ("A's layout with B's type"). A mix becomes a new direction with its own key screen. Then generate the remaining screens for the picked direction only, with its key mockup as the first `--ref` so the screens match.
 
 | id | direction | screen | file | status | reason |
 | --- | --- | --- | --- | --- | --- |
 
-`file` embeds the image. A redo gets a new file, such as `a-home-2.webp`, and its own row, so the earlier mockup stays. `status` starts as `candidate` and ends as `picked`, `dropped` or `redone`, with the owner's reason. Look at each mockup before you show it, and redo one whose copy or layout misses the prompt.
+`file` embeds the image. A redo gets a new file, such as `a-home-2.webp`, and its own row, so the earlier mockup stays. Attach the mockup you are replacing only when the redo keeps its layout, because the image model copies the shapes of an attached mockup.
+
+An image model can't draw a part that has to be exact, such as a chart, a count, or which of many items are in which state. Give the prompt a small state, with a handful of named items. Draw an exact part in code, as a small page in `design/<slug>/tools/`, and paste its screenshot onto the mockup. `status` starts as `candidate` and ends as `picked`, `dropped` or `redone`, with the owner's reason. Look at each mockup before you show it, and redo one whose copy or layout misses the prompt.
 
 Done when every screen in the scale has one picked mockup, or the owner has ended the exploration, and every mockup has a row.
 
@@ -109,7 +111,7 @@ Done when every screen in the scale has one picked mockup, or the owner has ende
 
 A mockup shows a direction. Its small text is garbled and its components are not the project's, so it is no specification. Under **What we take** in `exploration.md`, write what the picked mockups settle: the layout structure, the type pairing and scale, the palette as hex values, the density and the one bold thing. Build the real screens from that list, with the project's own components and the brief's copy.
 
-Review each built screen with its screenshot beside the picked mockup and the kept references of its direction.
+Review each built screen with its screenshot beside the picked mockup and the kept references of its direction. When another thread builds the screens, hand it `exploration.md`, and that thread does this review and step 7.
 
 Done when every picked screen is built and has been compared that way.
 
