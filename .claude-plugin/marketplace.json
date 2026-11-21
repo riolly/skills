@@ -18,6 +18,17 @@
       "repository": "https://github.com/riolly/skills"
     },
     {
+      "name": "design-explore",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/design-explore"
+      ],
+      "description": "Explore a new design from real references you curate and generated image mockups, before any UI code.",
+      "homepage": "https://github.com/riolly/skills",
+      "repository": "https://github.com/riolly/skills"
+    },
+    {
       "name": "feature-walkthrough",
       "source": "./",
       "strict": false,
