@@ -56,7 +56,7 @@ npx skills remove tailscale-machine
 
 ### 2. Claude Code plugin
 
-All the skills ship as one plugin, so each one is listed once. In your shell:
+All the skills ship as one plugin, which installs every skill. To get only some of them, use the skills CLI above with `--skill`. In your shell:
 
 ```bash
 claude plugin marketplace add riolly/skills
@@ -75,6 +75,13 @@ Installed this way, a skill is named after the plugin, for example `riolly-skill
 ```bash
 claude plugin marketplace update riolly-skills
 claude plugin update riolly-skills@riolly-skills
+```
+
+Earlier versions made each skill its own plugin, such as `tailscale-machine@riolly-skills`, named `tailscale-machine:tailscale-machine`. Those plugins are gone. Uninstall each one you have, then install `riolly-skills@riolly-skills`:
+
+```bash
+claude plugin uninstall tailscale-machine@riolly-skills
+claude plugin install riolly-skills@riolly-skills
 ```
 
 ### 3. Manual copy (Claude Code)

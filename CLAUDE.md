@@ -15,3 +15,4 @@ Phase: v0.x since 2026-11-16. A skill runs in every project that installs it, an
 - **A skill starts from a plain phrase.** Keep a trigger description, and set `disable-model-invocation` only when the owner asks for a slash-only skill. `prune` shipped manual-only, and "prune this project" did nothing.
 - **This repo is public and YoungPro is private.** Name its files and decisions. Never copy its data, secrets or anything about its users.
 - **Every skill lives in the one `riolly-skills` plugin.** A plugin per skill with `source: "./"` puts the whole `skills/` folder in each install, and T3 Code then lists every skill once per plugin.
+- **A new skill stays on a branch until it passes an eval on a real project.** Merging it to `main` ships it to every machine and every plugin user at once.
