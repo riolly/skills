@@ -56,26 +56,32 @@ npx skills remove tailscale-machine
 
 ### 2. Claude Code plugin
 
-Each skill is its own plugin, so you can install only the ones you use. In your shell:
+All the skills ship as one plugin, which installs every skill. To get only some of them, use the skills CLI above with `--skill`. In your shell:
 
 ```bash
 claude plugin marketplace add riolly/skills
-claude plugin install feature-walkthrough@riolly-skills
-claude plugin install tailscale-machine@riolly-skills
+claude plugin install riolly-skills@riolly-skills
 ```
 
 Or inside a Claude Code session:
 
 ```
 /plugin marketplace add riolly/skills
-/plugin install tailscale-machine@riolly-skills
+/plugin install riolly-skills@riolly-skills
 ```
 
-Installed this way, a skill is named after its plugin, for example `tailscale-machine:tailscale-machine`. Update later with:
+Installed this way, a skill is named after the plugin, for example `riolly-skills:tailscale-machine`. Update later with:
 
 ```bash
 claude plugin marketplace update riolly-skills
-claude plugin update tailscale-machine@riolly-skills
+claude plugin update riolly-skills@riolly-skills
+```
+
+Earlier versions made each skill its own plugin, such as `tailscale-machine@riolly-skills`, named `tailscale-machine:tailscale-machine`. Those plugins are gone. Uninstall each one you have, then install `riolly-skills@riolly-skills`:
+
+```bash
+claude plugin uninstall tailscale-machine@riolly-skills
+claude plugin install riolly-skills@riolly-skills
 ```
 
 ### 3. Manual copy (Claude Code)
@@ -91,7 +97,7 @@ Copy into a project's `.claude/skills/` instead to install it for that project o
 
 ## Use
 
-For a feature report, ask for a short narrated walkthrough or invoke `/feature-walkthrough` in Claude Code, `/feature-walkthrough:feature-walkthrough` through the plugin, or `$feature-walkthrough` in Codex. It explains what changed, demonstrates the actual result, and gives you steps to try.
+For a feature report, ask for a short narrated walkthrough or invoke `/feature-walkthrough` in Claude Code, `/riolly-skills:feature-walkthrough` through the plugin, or `$feature-walkthrough` in Codex. It explains what changed, demonstrates the actual result, and gives you steps to try.
 
 Existing recording preferences, including `AGENTS.md` instructions, take precedence. Otherwise, the skill gives written steps for changes that are obvious to check and asks once about a recording for harder ones. In Codex, the written result arrives as a progress update before recording, and the final response includes the verified video or a recording limitation. A recording subagent is preferred when available and allowed; T3 uses its shared preview recorder with or without subagents. Delivery after the turn ends requires a client that explicitly supports automatic resumption.
 
