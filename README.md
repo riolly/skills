@@ -11,6 +11,7 @@ Agent skills for Claude Code and Codex.
 | [`phase-up`](skills/phase-up/SKILL.md) | Audit a project against Day 0 or its next phase gate (prototype → product → platform), then set up what's missing in small PRs, protecting real data first. YoungPro is the benchmark and the eval. |
 | [`prune`](skills/prune/SKILL.md) | Cut a codebase down: find unused code, dependencies, comments and docs, and stale or conflicting agent context, then delete or shorten them in small PRs with checks green. Run it before `improve-codebase-architecture`. |
 | [`tailscale-machine`](skills/tailscale-machine/SKILL.md) | Add a machine to a tailnet and get it connecting directly, or work out why two machines are slow or relayed. Keeps your own addresses in a private local file. |
+| [`trace-svg`](skills/trace-svg/SKILL.md) | Draw an illustration as SVG by tracing a picture instead of writing coordinates: flat fills in your palette, one line layer, named groups, and a line-only state. The picture comes from a reference or from the image model. Needs `uv`. |
 
 `designing-ui` was removed on 2026-11-10 in favour of uizze's `ui-taste`. Its last version is in the git history.
 
