@@ -30,6 +30,7 @@ Keep the trace command in the repo that owns the SVG, next to the source picture
 | A line that breaks or is missing | Lower `--line-depth` to 5. For a thick line raise `--line-width`, or map its colour with `<found>=line`. |
 | A shape with no line where it meets the background or a darker colour | Add `--outline 1.2`. |
 | A thin dark shape drawn as line | Raise `--line-depth`, or lower `--line-width`. |
+| Edges that wobble or look jagged | Add `--round 1.2`. Thin lines start to fade above that. |
 | Specks and ragged islands | Raise `--speckle` to 30 and `--smooth` to 1.5. If they stay, the source is textured: generate a flatter one. |
 | Two tones painted as one | Map the lighter one to another paint. If the run found only one of them, raise `--colours`. |
 | `--map` says the run found no such colour | The found colours change with `--smooth` and `--colours`. Take the row from this run's sheet. |

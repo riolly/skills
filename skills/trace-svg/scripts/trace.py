@@ -68,6 +68,7 @@ def parse_args():
     p.add_argument("--no-line", action="store_true", help="skip the line layer")
     p.add_argument("--outline", type=float, default=0, help="also draw the line this wide, in picture pixels, wherever two colours meet, so every shape is closed")
     p.add_argument("--speckle", type=int, default=12, help="the smallest fill kept, as an area in picture pixels")
+    p.add_argument("--round", type=float, default=0, help="round the edge of every fill and of the line by this much, in picture pixels")
     p.add_argument("--smooth", type=float, default=1.0, help="how hard texture is flattened before colours are read")
     return p.parse_args()
 
@@ -141,6 +142,17 @@ def main():
             speck |= mask & ~morphology.remove_small_objects(mask, max_size=smallest)
         if speck.any():
             labels = fill_from_neighbours(labels, speck)
+
+    if a.round:
+        sigma = a.round * a.scale
+        best = np.zeros(labels.shape, dtype=np.float32)
+        rounded = labels.copy()
+        for value in np.unique(labels):
+            weight = ndi.gaussian_filter((labels == value).astype(np.float32), sigma)
+            better = weight > best
+            best[better], rounded[better] = weight[better], value
+        labels = rounded
+        is_line = ndi.gaussian_filter(is_line.astype(np.float32), sigma / 2) > 0.5
 
     if a.outline:
         border = np.zeros_like(is_line)
